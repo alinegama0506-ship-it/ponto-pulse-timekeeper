@@ -127,11 +127,8 @@ function RootComponent() {
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
-      // Leave the auth callback before refetching queries that call auth.getUser().
-      setTimeout(() => {
-        void router.invalidate();
-        if (event !== "SIGNED_OUT") void queryClient.invalidateQueries();
-      }, 0);
+      router.invalidate();
+      if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
     });
     return () => data.subscription.unsubscribe();
   }, [router, queryClient]);
