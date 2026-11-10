@@ -14,16 +14,214 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      marcacoes: {
+        Row: {
+          aprovado_em: string | null
+          aprovado_por: string | null
+          created_at: string
+          data_local: string
+          hora_local: string
+          id: string
+          momento_dispositivo: string
+          origem: string
+          solicitacao_id: string | null
+          timezone: string | null
+          tipo: Database["public"]["Enums"]["tipo_marcacao"]
+          tz_offset_min: number
+          user_id: string
+        }
+        Insert: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          created_at?: string
+          data_local: string
+          hora_local: string
+          id?: string
+          momento_dispositivo: string
+          origem?: string
+          solicitacao_id?: string | null
+          timezone?: string | null
+          tipo: Database["public"]["Enums"]["tipo_marcacao"]
+          tz_offset_min: number
+          user_id?: string
+        }
+        Update: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          created_at?: string
+          data_local?: string
+          hora_local?: string
+          id?: string
+          momento_dispositivo?: string
+          origem?: string
+          solicitacao_id?: string | null
+          timezone?: string | null
+          tipo?: Database["public"]["Enums"]["tipo_marcacao"]
+          tz_offset_min?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marcacoes_solicitacao_id_fkey"
+            columns: ["solicitacao_id"]
+            isOneToOne: false
+            referencedRelation: "solicitacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          ativo: boolean
+          cargo: string | null
+          created_at: string
+          email: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          ativo?: boolean
+          cargo?: string | null
+          created_at?: string
+          email?: string | null
+          id: string
+          nome?: string
+        }
+        Update: {
+          ativo?: boolean
+          cargo?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
+      regras: {
+        Row: {
+          atualizado_em: string
+          id: number
+          jornada_diaria_min: number
+          limite_diario_min: number
+          tolerancia_min: number
+          validade_banco_dias: number
+        }
+        Insert: {
+          atualizado_em?: string
+          id?: number
+          jornada_diaria_min?: number
+          limite_diario_min?: number
+          tolerancia_min?: number
+          validade_banco_dias?: number
+        }
+        Update: {
+          atualizado_em?: string
+          id?: number
+          jornada_diaria_min?: number
+          limite_diario_min?: number
+          tolerancia_min?: number
+          validade_banco_dias?: number
+        }
+        Relationships: []
+      }
+      solicitacoes: {
+        Row: {
+          created_at: string
+          data_solicitada: string
+          decidido_em: string | null
+          decidido_por: string | null
+          hora_solicitada: string
+          id: string
+          justificativa_rejeicao: string | null
+          motivo: Database["public"]["Enums"]["motivo_ajuste"]
+          observacao: string | null
+          status: Database["public"]["Enums"]["status_solicitacao"]
+          tipo: Database["public"]["Enums"]["tipo_marcacao"]
+          tz_offset_min: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_solicitada: string
+          decidido_em?: string | null
+          decidido_por?: string | null
+          hora_solicitada: string
+          id?: string
+          justificativa_rejeicao?: string | null
+          motivo: Database["public"]["Enums"]["motivo_ajuste"]
+          observacao?: string | null
+          status?: Database["public"]["Enums"]["status_solicitacao"]
+          tipo: Database["public"]["Enums"]["tipo_marcacao"]
+          tz_offset_min?: number
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          data_solicitada?: string
+          decidido_em?: string | null
+          decidido_por?: string | null
+          hora_solicitada?: string
+          id?: string
+          justificativa_rejeicao?: string | null
+          motivo?: Database["public"]["Enums"]["motivo_ajuste"]
+          observacao?: string | null
+          status?: Database["public"]["Enums"]["status_solicitacao"]
+          tipo?: Database["public"]["Enums"]["tipo_marcacao"]
+          tz_offset_min?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      decidir_solicitacao: {
+        Args: { _aprovar: boolean; _id: string; _justificativa?: string }
+        Returns: undefined
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "colaborador" | "gestor"
+      motivo_ajuste:
+        | "esquecimento"
+        | "falha_sistema"
+        | "conexao"
+        | "dispositivo"
+        | "atividade_externa"
+        | "outro"
+      status_solicitacao: "pendente" | "aprovado" | "rejeitado"
+      tipo_marcacao:
+        | "entrada"
+        | "saida_intervalo"
+        | "retorno_intervalo"
+        | "saida"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +348,23 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["colaborador", "gestor"],
+      motivo_ajuste: [
+        "esquecimento",
+        "falha_sistema",
+        "conexao",
+        "dispositivo",
+        "atividade_externa",
+        "outro",
+      ],
+      status_solicitacao: ["pendente", "aprovado", "rejeitado"],
+      tipo_marcacao: [
+        "entrada",
+        "saida_intervalo",
+        "retorno_intervalo",
+        "saida",
+      ],
+    },
   },
 } as const
