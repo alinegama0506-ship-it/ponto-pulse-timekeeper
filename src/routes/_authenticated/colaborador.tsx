@@ -13,13 +13,13 @@ import {
   formatarData, formatarHora, formatarMinutos, minutosTrabalhados, proximoTipo, saldoBanco, saldoDia,
 } from "@/lib/ponto";
 import { useNavigate } from "@tanstack/react-router";
+import { statusVariant } from "@/lib/gestor-queries";
 
 export const Route = createFileRoute("/_authenticated/colaborador")({
   head: () => ({ meta: [{ title: "Meu ponto — Ponto Inteligente" }, { name: "description", content: "Registre seu ponto e acompanhe seu banco de horas." }] }),
   component: Colaborador,
 });
 
-export const statusVariant = { pendente: "warning", aprovado: "success", rejeitado: "danger" } as const;
 
 function Colaborador() {
   const qc = useQueryClient();
