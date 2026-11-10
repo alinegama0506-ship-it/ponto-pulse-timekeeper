@@ -10,33 +10,147 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedColaboradorRouteImport } from './routes/_authenticated/colaborador'
+import { Route as AuthenticatedGestorRouteImport } from './routes/_authenticated/gestor'
+import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
+import { Route as AuthenticatedGestorDashboardRouteImport } from './routes/_authenticated/gestor.dashboard'
+import { Route as AuthenticatedGestorEquipeRouteImport } from './routes/_authenticated/gestor.equipe'
+import { Route as AuthenticatedGestorOperacaoRouteImport } from './routes/_authenticated/gestor.operacao'
+import { Route as AuthenticatedGestorRegrasRouteImport } from './routes/_authenticated/gestor.regras'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedColaboradorRoute =
+  AuthenticatedColaboradorRouteImport.update({
+    id: '/colaborador',
+    path: '/colaborador',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGestorRoute = AuthenticatedGestorRouteImport.update({
+  id: '/gestor',
+  path: '/gestor',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedInicioRoute = AuthenticatedInicioRouteImport.update({
+  id: '/inicio',
+  path: '/inicio',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedGestorDashboardRoute =
+  AuthenticatedGestorDashboardRouteImport.update({
+    id: '/dashboard',
+    path: '/dashboard',
+    getParentRoute: () => AuthenticatedGestorRoute,
+  } as any)
+const AuthenticatedGestorEquipeRoute =
+  AuthenticatedGestorEquipeRouteImport.update({
+    id: '/equipe',
+    path: '/equipe',
+    getParentRoute: () => AuthenticatedGestorRoute,
+  } as any)
+const AuthenticatedGestorOperacaoRoute =
+  AuthenticatedGestorOperacaoRouteImport.update({
+    id: '/operacao',
+    path: '/operacao',
+    getParentRoute: () => AuthenticatedGestorRoute,
+  } as any)
+const AuthenticatedGestorRegrasRoute =
+  AuthenticatedGestorRegrasRouteImport.update({
+    id: '/regras',
+    path: '/regras',
+    getParentRoute: () => AuthenticatedGestorRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/colaborador': typeof AuthenticatedColaboradorRoute
+  '/gestor': typeof AuthenticatedGestorRouteWithChildren
+  '/inicio': typeof AuthenticatedInicioRoute
+  '/gestor/dashboard': typeof AuthenticatedGestorDashboardRoute
+  '/gestor/equipe': typeof AuthenticatedGestorEquipeRoute
+  '/gestor/operacao': typeof AuthenticatedGestorOperacaoRoute
+  '/gestor/regras': typeof AuthenticatedGestorRegrasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/colaborador': typeof AuthenticatedColaboradorRoute
+  '/gestor': typeof AuthenticatedGestorRouteWithChildren
+  '/inicio': typeof AuthenticatedInicioRoute
+  '/gestor/dashboard': typeof AuthenticatedGestorDashboardRoute
+  '/gestor/equipe': typeof AuthenticatedGestorEquipeRoute
+  '/gestor/operacao': typeof AuthenticatedGestorOperacaoRoute
+  '/gestor/regras': typeof AuthenticatedGestorRegrasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/colaborador': typeof AuthenticatedColaboradorRoute
+  '/_authenticated/gestor': typeof AuthenticatedGestorRouteWithChildren
+  '/_authenticated/inicio': typeof AuthenticatedInicioRoute
+  '/_authenticated/gestor/dashboard': typeof AuthenticatedGestorDashboardRoute
+  '/_authenticated/gestor/equipe': typeof AuthenticatedGestorEquipeRoute
+  '/_authenticated/gestor/operacao': typeof AuthenticatedGestorOperacaoRoute
+  '/_authenticated/gestor/regras': typeof AuthenticatedGestorRegrasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/colaborador'
+    | '/gestor'
+    | '/inicio'
+    | '/gestor/dashboard'
+    | '/gestor/equipe'
+    | '/gestor/operacao'
+    | '/gestor/regras'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/colaborador'
+    | '/gestor'
+    | '/inicio'
+    | '/gestor/dashboard'
+    | '/gestor/equipe'
+    | '/gestor/operacao'
+    | '/gestor/regras'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/colaborador'
+    | '/_authenticated/gestor'
+    | '/_authenticated/inicio'
+    | '/_authenticated/gestor/dashboard'
+    | '/_authenticated/gestor/equipe'
+    | '/_authenticated/gestor/operacao'
+    | '/_authenticated/gestor/regras'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +162,108 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/colaborador': {
+      id: '/_authenticated/colaborador'
+      path: '/colaborador'
+      fullPath: '/colaborador'
+      preLoaderRoute: typeof AuthenticatedColaboradorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/gestor': {
+      id: '/_authenticated/gestor'
+      path: '/gestor'
+      fullPath: '/gestor'
+      preLoaderRoute: typeof AuthenticatedGestorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/inicio': {
+      id: '/_authenticated/inicio'
+      path: '/inicio'
+      fullPath: '/inicio'
+      preLoaderRoute: typeof AuthenticatedInicioRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/gestor/dashboard': {
+      id: '/_authenticated/gestor/dashboard'
+      path: '/dashboard'
+      fullPath: '/gestor/dashboard'
+      preLoaderRoute: typeof AuthenticatedGestorDashboardRouteImport
+      parentRoute: typeof AuthenticatedGestorRoute
+    }
+    '/_authenticated/gestor/equipe': {
+      id: '/_authenticated/gestor/equipe'
+      path: '/equipe'
+      fullPath: '/gestor/equipe'
+      preLoaderRoute: typeof AuthenticatedGestorEquipeRouteImport
+      parentRoute: typeof AuthenticatedGestorRoute
+    }
+    '/_authenticated/gestor/operacao': {
+      id: '/_authenticated/gestor/operacao'
+      path: '/operacao'
+      fullPath: '/gestor/operacao'
+      preLoaderRoute: typeof AuthenticatedGestorOperacaoRouteImport
+      parentRoute: typeof AuthenticatedGestorRoute
+    }
+    '/_authenticated/gestor/regras': {
+      id: '/_authenticated/gestor/regras'
+      path: '/regras'
+      fullPath: '/gestor/regras'
+      preLoaderRoute: typeof AuthenticatedGestorRegrasRouteImport
+      parentRoute: typeof AuthenticatedGestorRoute
+    }
   }
 }
 
+interface AuthenticatedGestorRouteChildren {
+  AuthenticatedGestorDashboardRoute: typeof AuthenticatedGestorDashboardRoute
+  AuthenticatedGestorEquipeRoute: typeof AuthenticatedGestorEquipeRoute
+  AuthenticatedGestorOperacaoRoute: typeof AuthenticatedGestorOperacaoRoute
+  AuthenticatedGestorRegrasRoute: typeof AuthenticatedGestorRegrasRoute
+}
+
+const AuthenticatedGestorRouteChildren: AuthenticatedGestorRouteChildren = {
+  AuthenticatedGestorDashboardRoute: AuthenticatedGestorDashboardRoute,
+  AuthenticatedGestorEquipeRoute: AuthenticatedGestorEquipeRoute,
+  AuthenticatedGestorOperacaoRoute: AuthenticatedGestorOperacaoRoute,
+  AuthenticatedGestorRegrasRoute: AuthenticatedGestorRegrasRoute,
+}
+
+const AuthenticatedGestorRouteWithChildren =
+  AuthenticatedGestorRoute._addFileChildren(AuthenticatedGestorRouteChildren)
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedColaboradorRoute: typeof AuthenticatedColaboradorRoute
+  AuthenticatedGestorRoute: typeof AuthenticatedGestorRouteWithChildren
+  AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedColaboradorRoute: AuthenticatedColaboradorRoute,
+  AuthenticatedGestorRoute: AuthenticatedGestorRouteWithChildren,
+  AuthenticatedInicioRoute: AuthenticatedInicioRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
