@@ -199,6 +199,10 @@ export type Database = {
         Args: { _aprovar: boolean; _id: string; _justificativa?: string }
         Returns: undefined
       }
+      definir_gestor: {
+        Args: { _gestor: boolean; _user_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
