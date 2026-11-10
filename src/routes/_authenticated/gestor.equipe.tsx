@@ -1,5 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useMe } from "@/lib/queries";
 import { PageHeading, Panel } from "@/components/ponto/PageHeading";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -45,6 +51,7 @@ function Equipe() {
           <Select value={id} onValueChange={setSel}><SelectTrigger id="colab" className="h-11 w-60 bg-card"><SelectValue placeholder="Selecione" /></SelectTrigger>
             <SelectContent>{profiles.data?.map((x) => <SelectItem key={x.id} value={x.id}>{x.nome}</SelectItem>)}</SelectContent></Select></div>
       </PageHeading>
+      <div className="mb-6"><AcessosPanel /></div>
       {p && r && (
         <>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -70,5 +77,48 @@ function Equipe() {
         </>
       )}
     </>
+  );
+}
+
+function AcessosPanel() {
+  const qc = useQueryClient();
+  const me = useMe();
+  const profiles = useProfiles();
+  const roles = useQuery({
+    queryKey: ["roles", "todos"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("user_roles").select("user_id, role").eq("role", "gestor");
+      if (error) throw error;
+      return new Set(data.map((x) => x.user_id));
+    },
+  });
+  const mut = useMutation({
+    mutationFn: async (v: { id: string; gestor: boolean }) => {
+      const { error } = await supabase.rpc("definir_gestor", { _user_id: v.id, _gestor: v.gestor });
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success("Acesso atualizado."); qc.invalidateQueries({ queryKey: ["roles"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return (
+    <Panel title="Acessos">
+      <p className="mb-3 text-sm text-muted-foreground">Colaboradores veem apenas o próprio ponto. Gestor/RH vê a equipe toda, aprova ajustes e altera regras.</p>
+      <ul className="divide-y">
+        {profiles.data?.map((p) => {
+          const g = roles.data?.has(p.id) ?? false;
+          const eu = p.id === me.data?.user.id;
+          return (
+            <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm">
+              <div><span className="font-medium">{p.nome}</span> <span className="text-muted-foreground">{p.email}</span></div>
+              <div className="flex items-center gap-2">
+                <Badge variant={g ? "success" : "secondary"}>{g ? "Gestor/RH" : "Colaborador"}</Badge>
+                {!eu && <Button size="sm" variant="outline" className="min-h-11" disabled={mut.isPending || !roles.data}
+                  onClick={() => mut.mutate({ id: p.id, gestor: !g })}>{g ? "Tornar colaborador" : "Tornar Gestor/RH"}</Button>}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </Panel>
   );
 }

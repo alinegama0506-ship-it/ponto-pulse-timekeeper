@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ClipboardList, Clock3, LayoutDashboard, LogOut, Menu, Scale, UserRound, Users, X } from "lucide-react";
@@ -28,12 +28,7 @@ function GestorLayout() {
 
   if (me.isLoading) return <div className="grid min-h-screen place-items-center text-muted-foreground">Carregando…</div>;
   if (!me.data?.isGestor)
-    return (
-      <div className="grid min-h-screen place-items-center px-4 text-center">
-        <div><h1 className="text-xl font-bold">Acesso restrito ao Gestor/RH</h1>
-          <Button asChild className="mt-4"><Link to="/colaborador">Ir para meu ponto</Link></Button></div>
-      </div>
-    );
+    return <Navigate to="/colaborador" replace />;
 
   const sidebar = (
     <nav aria-label="Menu principal" className="flex h-full flex-col gap-6 bg-sidebar px-4 py-6 text-sidebar-foreground">
