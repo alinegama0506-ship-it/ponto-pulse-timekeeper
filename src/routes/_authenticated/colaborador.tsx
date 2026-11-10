@@ -147,7 +147,7 @@ function Colaborador() {
           {dias.length ? <div className="overflow-x-auto"><table className="w-full min-w-[480px] text-sm">
             <thead><tr className="text-left text-xs text-muted-foreground"><th className="py-2">Data</th>{TIPOS.map((t) => <th key={t} className="py-2">{TIPO_LABEL[t].split(" ")[0]}{t.includes("intervalo") ? " int." : ""}</th>)}<th className="py-2">Trabalhado</th><th className="py-2">Saldo</th></tr></thead>
             <tbody className="divide-y">{dias.map(([k, d]) => (
-              <tr key={k}><td className="py-2 font-medium">{formatarData(d[0].data_local)}</td>
+              <tr key={k}><td className="py-2 font-medium">{formatarData(d[0]!.data_local)}</td>
                 {TIPOS.map((t) => { const m = d.find((x) => x.tipo === t); return <td key={t} className="tabular py-2">{m ? formatarHora(m.momento_dispositivo) : "—"}</td>; })}
                 <td className="tabular py-2">{formatarMinutos(minutosTrabalhados(d), false)}</td>
                 <td className="tabular py-2 font-semibold">{regras.data ? formatarMinutos(saldoDia(d, regras.data)) : ""}</td></tr>

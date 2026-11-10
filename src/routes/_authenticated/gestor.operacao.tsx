@@ -46,7 +46,7 @@ function Operacao() {
 
   const decidir = useMutation({
     mutationFn: async (d: NonNullable<Decisao>) => {
-      const { error } = await supabase.rpc("decidir_solicitacao", { _id: d.id, _aprovar: d.aprovar, _justificativa: just || undefined });
+      const { error } = await supabase.rpc("decidir_solicitacao", { _id: d.id, _aprovar: d.aprovar, ...(just ? { _justificativa: just } : {}) });
       if (error) throw error;
     },
     onSuccess: (_, d) => {

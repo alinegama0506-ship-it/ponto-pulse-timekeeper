@@ -61,7 +61,7 @@ function Equipe() {
             {dias.length ? <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
               <thead><tr className="border-b text-left text-xs text-muted-foreground"><th className="py-2">Data</th>{TIPOS.map((t) => <th key={t}>{TIPO_LABEL[t]}</th>)}<th>Trabalhado</th><th className="text-right">Saldo</th></tr></thead>
               <tbody className="divide-y">{dias.map((d) => (
-                <tr key={d[0].data_local}><td className="py-2.5 font-medium">{formatarData(d[0].data_local)}</td>
+                <tr key={d[0]!.data_local}><td className="py-2.5 font-medium">{formatarData(d[0]!.data_local)}</td>
                   {TIPOS.map((t) => { const m = d.find((x) => x.tipo === t); return <td key={t} className="tabular">{m ? formatarHora(m.momento_dispositivo) : "—"}</td>; })}
                   <td className="tabular">{formatarMinutos(minutosTrabalhados(d), false)}</td>
                   <td className="tabular text-right font-semibold">{formatarMinutos(saldoDia(d, r))}</td></tr>

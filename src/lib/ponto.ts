@@ -132,8 +132,9 @@ export interface SolicitacaoInput {
 }
 
 /** Validates the adjustment form; returns field → message. */
-export function validarSolicitacao(v: SolicitacaoInput, hoje: string): Record<string, string> {
-  const e: Record<string, string> = {};
+export type ErrosSolicitacao = Partial<Record<keyof SolicitacaoInput, string>>;
+export function validarSolicitacao(v: SolicitacaoInput, hoje: string): ErrosSolicitacao {
+  const e: ErrosSolicitacao = {};
   if (!/^\d{4}-\d{2}-\d{2}$/.test(v.data_solicitada) || isNaN(Date.parse(v.data_solicitada)))
     e.data_solicitada = "Informe uma data válida.";
   else if (v.data_solicitada > hoje) e.data_solicitada = "A data não pode estar no futuro.";
