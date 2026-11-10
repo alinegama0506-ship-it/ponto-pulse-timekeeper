@@ -8,6 +8,13 @@
       "when": 1794327817372,
       "tag": "0000_ponto_inteligente",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794329146942,
+      "tag": "0001_definir_papel",
+      "breakpoints": true
     }
   ]
 }
