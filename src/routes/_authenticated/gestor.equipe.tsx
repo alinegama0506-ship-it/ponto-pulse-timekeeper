@@ -32,7 +32,7 @@ function Equipe() {
   const id = sel || profiles.data?.[0]?.id || "";
   const p = profiles.data?.find((x) => x.id === id);
   const ms = (marc.data ?? []).filter((m) => m.user_id === id);
-  const dias = [...agruparPorDia(ms).values()].sort((a, b) => b[0].data_local.localeCompare(a[0].data_local));
+  const dias = [...agruparPorDia(ms).values()].sort((a, b) => b[0]!.data_local.localeCompare(a[0]!.data_local));
   const r = regras.data;
   const comMarc = new Set(ms.map((m) => m.data_local));
   const faltas = diasUteis(desde).filter((d) => !comMarc.has(d)).length;
