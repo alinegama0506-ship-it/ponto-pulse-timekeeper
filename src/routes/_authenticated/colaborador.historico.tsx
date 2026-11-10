@@ -1,0 +1,10 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
+import { useMinhasMarcacoes } from "@/lib/colaborador-queries";
+import { useRegras } from "@/lib/queries";
+import { TIPOS, TIPO_LABEL, agruparPorDia, formatarMinutos, minutosTrabalhados, saldoDia } from "@/lib/ponto";
+import { useT } from "@/lib/i18n";
+import { pageHead } from "@/lib/metadata";
+export const Route = createFileRoute("/_authenticated/colaborador/historico")({ head: () => pageHead("Histórico", "Histórico diário das suas marcações."), component: Historico });
+function Historico(){const {t,data,hora}=useT();const marc=useMinhasMarcacoes();const regras=useRegras();const dias=[...agruparPorDia(marc.data??[]).entries()].slice(0,14);
+return <div className="mx-auto max-w-4xl"><h1 className="mb-5 text-2xl font-bold">{t('Histórico diário')}</h1><section className="rounded-2xl border bg-card p-4 shadow-card">{marc.isPending?<p role="status">{t('Carregando marcações…')}</p>:marc.isError?<div role="alert">{t('Não foi possível carregar os dados.')} <Button className="min-h-11" variant="outline" onClick={()=>void marc.refetch()}>{t('Tentar de novo')}</Button></div>:dias.length?<div className="overflow-x-auto"><table className="w-full min-w-[560px] text-sm"><caption className="sr-only">{t('Histórico diário')}</caption><thead><tr className="text-left text-xs text-muted-foreground"><th scope="col" className="py-2">{t('Data')}</th>{TIPOS.map(x=><th scope="col" key={x} className="py-2">{t(TIPO_LABEL[x])}</th>)}<th scope="col">{t('Trabalhado')}</th><th scope="col">{t('Saldo')}</th></tr></thead><tbody className="divide-y">{dias.map(([k,d])=><tr key={k}><th scope="row" className="py-2 text-left font-medium">{data(d[0]?.data_local??'')}</th>{TIPOS.map(x=>{const m=d.find(y=>y.tipo===x);return <td key={x} className="tabular py-2">{m?hora(m.momento_dispositivo):'—'}</td>;})}<td className="tabular">{formatarMinutos(minutosTrabalhados(d),false)}</td><td className="tabular font-semibold">{regras.data?formatarMinutos(saldoDia(d,regras.data)):'…'}</td></tr>)}</tbody></table></div>:<p>{t('Sem marcações registradas.')}</p>}</section></div>;}

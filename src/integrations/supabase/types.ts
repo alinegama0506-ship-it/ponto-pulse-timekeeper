@@ -163,34 +163,43 @@ export type Database = {
       }
       profiles: {
         Row: {
+          acessibilidade: Json
           ativo: boolean
           cargo: string | null
           created_at: string
           email: string | null
           geo_aviso_visto_em: string | null
           id: string
+          idioma: string
           modalidade: string
           nome: string
+          notificacoes: Json
         }
         Insert: {
+          acessibilidade?: Json
           ativo?: boolean
           cargo?: string | null
           created_at?: string
           email?: string | null
           geo_aviso_visto_em?: string | null
           id: string
+          idioma?: string
           modalidade?: string
           nome?: string
+          notificacoes?: Json
         }
         Update: {
+          acessibilidade?: Json
           ativo?: boolean
           cargo?: string | null
           created_at?: string
           email?: string | null
           geo_aviso_visto_em?: string | null
           id?: string
+          idioma?: string
           modalidade?: string
           nome?: string
+          notificacoes?: Json
         }
         Relationships: []
       }
