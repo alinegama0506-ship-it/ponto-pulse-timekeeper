@@ -28,3 +28,9 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+- Punch/balance rules live in `src/lib/ponto.ts` (pure, tested in `ponto.test.ts`); UI must reuse them so balance never counts pending requests.
+- Request approval/rejection only via the `decidir_solicitacao` SQL function (security definer: checks gestor role, blocks self-approval, writes audit fields); clients have no UPDATE on `solicitacoes`/`marcacoes`.
+- Punches store device local date/time + tz offset; `created_at` is the server audit timestamp — never overwrite one with the other.
+- Roles live in `user_roles` (`colaborador`, `gestor`); first signed-up user becomes gestor via the signup trigger.
