@@ -45,7 +45,16 @@ function AuthPage() {
         else toast.success("Conta criada. Confirme pelo link enviado ao seu e-mail.");
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Não foi possível continuar");
+      const code = (err as { code?: string })?.code ?? "";
+      const msg = err instanceof Error ? err.message : "";
+      const traduz: Record<string, string> = {
+        weak_password: "Senha fraca ou já vazada na internet. Use uma senha mais forte (letras, números e símbolos).",
+        user_already_exists: "Este e-mail já está cadastrado. Use \"Entrar\".",
+        invalid_credentials: "E-mail ou senha incorretos.",
+        email_not_confirmed: "Confirme seu e-mail pelo link enviado antes de entrar.",
+        over_email_send_rate_limit: "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
+      };
+      toast.error(traduz[code] ?? (msg.includes("not allowed") ? "Este endereço de e-mail não é aceito. Use um e-mail real." : msg || "Não foi possível continuar"), { duration: 8000 });
     } finally {
       setLoading(false);
     }
