@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Navigate, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { ClipboardList, Clock3, LayoutDashboard, LogOut, Menu, Scale, UserRound, Users, X } from "lucide-react";
+import { ClipboardList, Clock3, LayoutDashboard, LogOut, MapPin, Menu, Scale, UserRound, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Clock } from "@/components/ponto/Clock";
 import { iniciais, sair, useMe } from "@/lib/queries";
@@ -15,6 +15,7 @@ const NAV = [
   { to: "/gestor/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/gestor/operacao", label: "Operação", icon: ClipboardList },
   { to: "/gestor/equipe", label: "Equipe", icon: Users },
+  { to: "/gestor/locais", label: "Locais de trabalho", icon: MapPin },
   { to: "/gestor/regras", label: "Regras e transparência", icon: Scale },
 ] as const;
 

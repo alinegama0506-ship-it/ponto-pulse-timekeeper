@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Regras } from "./ponto";
+import type { Database } from "@/integrations/supabase/types";
 
 export function useMe() {
   return useQuery({
@@ -22,7 +22,7 @@ export function useMe() {
 export function useRegras() {
   return useQuery({
     queryKey: ["regras"],
-    queryFn: async (): Promise<Regras> => {
+    queryFn: async (): Promise<Database["public"]["Tables"]["regras"]["Row"]> => {
       const { data, error } = await supabase.from("regras").select("*").eq("id", 1).single();
       if (error) throw error;
       return data;
