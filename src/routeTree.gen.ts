@@ -17,6 +17,7 @@ import { Route as AuthenticatedGestorRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
 import { Route as AuthenticatedGestorDashboardRouteImport } from './routes/_authenticated/gestor.dashboard'
 import { Route as AuthenticatedGestorEquipeRouteImport } from './routes/_authenticated/gestor.equipe'
+import { Route as AuthenticatedGestorLocaisRouteImport } from './routes/_authenticated/gestor.locais'
 import { Route as AuthenticatedGestorOperacaoRouteImport } from './routes/_authenticated/gestor.operacao'
 import { Route as AuthenticatedGestorRegrasRouteImport } from './routes/_authenticated/gestor.regras'
 
@@ -62,6 +63,12 @@ const AuthenticatedGestorEquipeRoute =
     path: '/equipe',
     getParentRoute: () => AuthenticatedGestorRoute,
   } as any)
+const AuthenticatedGestorLocaisRoute =
+  AuthenticatedGestorLocaisRouteImport.update({
+    id: '/locais',
+    path: '/locais',
+    getParentRoute: () => AuthenticatedGestorRoute,
+  } as any)
 const AuthenticatedGestorOperacaoRoute =
   AuthenticatedGestorOperacaoRouteImport.update({
     id: '/operacao',
@@ -83,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/inicio': typeof AuthenticatedInicioRoute
   '/gestor/dashboard': typeof AuthenticatedGestorDashboardRoute
   '/gestor/equipe': typeof AuthenticatedGestorEquipeRoute
+  '/gestor/locais': typeof AuthenticatedGestorLocaisRoute
   '/gestor/operacao': typeof AuthenticatedGestorOperacaoRoute
   '/gestor/regras': typeof AuthenticatedGestorRegrasRoute
 }
@@ -94,6 +102,7 @@ export interface FileRoutesByTo {
   '/inicio': typeof AuthenticatedInicioRoute
   '/gestor/dashboard': typeof AuthenticatedGestorDashboardRoute
   '/gestor/equipe': typeof AuthenticatedGestorEquipeRoute
+  '/gestor/locais': typeof AuthenticatedGestorLocaisRoute
   '/gestor/operacao': typeof AuthenticatedGestorOperacaoRoute
   '/gestor/regras': typeof AuthenticatedGestorRegrasRoute
 }
@@ -107,6 +116,7 @@ export interface FileRoutesById {
   '/_authenticated/inicio': typeof AuthenticatedInicioRoute
   '/_authenticated/gestor/dashboard': typeof AuthenticatedGestorDashboardRoute
   '/_authenticated/gestor/equipe': typeof AuthenticatedGestorEquipeRoute
+  '/_authenticated/gestor/locais': typeof AuthenticatedGestorLocaisRoute
   '/_authenticated/gestor/operacao': typeof AuthenticatedGestorOperacaoRoute
   '/_authenticated/gestor/regras': typeof AuthenticatedGestorRegrasRoute
 }
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
     | '/inicio'
     | '/gestor/dashboard'
     | '/gestor/equipe'
+    | '/gestor/locais'
     | '/gestor/operacao'
     | '/gestor/regras'
   fileRoutesByTo: FileRoutesByTo
@@ -131,6 +142,7 @@ export interface FileRouteTypes {
     | '/inicio'
     | '/gestor/dashboard'
     | '/gestor/equipe'
+    | '/gestor/locais'
     | '/gestor/operacao'
     | '/gestor/regras'
   id:
@@ -143,6 +155,7 @@ export interface FileRouteTypes {
     | '/_authenticated/inicio'
     | '/_authenticated/gestor/dashboard'
     | '/_authenticated/gestor/equipe'
+    | '/_authenticated/gestor/locais'
     | '/_authenticated/gestor/operacao'
     | '/_authenticated/gestor/regras'
   fileRoutesById: FileRoutesById
@@ -211,6 +224,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGestorEquipeRouteImport
       parentRoute: typeof AuthenticatedGestorRoute
     }
+    '/_authenticated/gestor/locais': {
+      id: '/_authenticated/gestor/locais'
+      path: '/locais'
+      fullPath: '/gestor/locais'
+      preLoaderRoute: typeof AuthenticatedGestorLocaisRouteImport
+      parentRoute: typeof AuthenticatedGestorRoute
+    }
     '/_authenticated/gestor/operacao': {
       id: '/_authenticated/gestor/operacao'
       path: '/operacao'
@@ -231,6 +251,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedGestorRouteChildren {
   AuthenticatedGestorDashboardRoute: typeof AuthenticatedGestorDashboardRoute
   AuthenticatedGestorEquipeRoute: typeof AuthenticatedGestorEquipeRoute
+  AuthenticatedGestorLocaisRoute: typeof AuthenticatedGestorLocaisRoute
   AuthenticatedGestorOperacaoRoute: typeof AuthenticatedGestorOperacaoRoute
   AuthenticatedGestorRegrasRoute: typeof AuthenticatedGestorRegrasRoute
 }
@@ -238,6 +259,7 @@ interface AuthenticatedGestorRouteChildren {
 const AuthenticatedGestorRouteChildren: AuthenticatedGestorRouteChildren = {
   AuthenticatedGestorDashboardRoute: AuthenticatedGestorDashboardRoute,
   AuthenticatedGestorEquipeRoute: AuthenticatedGestorEquipeRoute,
+  AuthenticatedGestorLocaisRoute: AuthenticatedGestorLocaisRoute,
   AuthenticatedGestorOperacaoRoute: AuthenticatedGestorOperacaoRoute,
   AuthenticatedGestorRegrasRoute: AuthenticatedGestorRegrasRoute,
 }

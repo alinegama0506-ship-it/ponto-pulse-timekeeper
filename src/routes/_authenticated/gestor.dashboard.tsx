@@ -5,6 +5,7 @@ import { PageHeading, Panel } from "@/components/ponto/PageHeading";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { diasAtras, useProfiles, useTodasMarcacoes, useTodasSolicitacoes } from "@/lib/gestor-queries";
+import { relogioDivergente } from "@/lib/geo";
 import { useRegras } from "@/lib/queries";
 import { agruparPorDia, dataLocalHoje, formatarData, formatarMinutos, jornadaCompleta, minutosTrabalhados, saldoBanco } from "@/lib/ponto";
 
@@ -27,6 +28,8 @@ function Dashboard() {
   const dias = [...agruparPorDia(ms).values()];
   const completas = dias.filter(jornadaCompleta).length;
   const acimaLimite = r ? dias.filter((d) => minutosTrabalhados(d) > r.limite_diario_min) : [];
+  const foraArea = ms.filter(m => m.geo_status === "fora").length;
+  const divergentes = ms.filter(m => relogioDivergente(m.divergencia_relogio_s, r?.divergencia_max_s ?? 300)).length;
   const pendentes = (sol.data ?? []).filter((s) => s.status === "pendente").length;
   const vencimento = r ? diasAtras(r.validade_banco_dias - 15) : "";
   const proxVenc = r ? new Set(ms.filter((m) => m.data_local <= vencimento).map((m) => m.user_id)).size : 0;
@@ -53,6 +56,8 @@ function Dashboard() {
           </Select>
         </div>
       </PageHeading>
+      {marc.isPending && <p role="status" className="mb-4">Carregando indicadores…</p>}
+      {(marc.isError || regras.isError || profiles.isError) && <p role="alert" className="mb-4 text-destructive">Não foi possível carregar os indicadores.</p>}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
         {kpis.map(({ l, v, i: I }) => (
           <div key={l} className="rounded-xl border bg-card p-5 shadow-card">
@@ -73,13 +78,15 @@ function Dashboard() {
         <Panel title="Alertas">
           <ul className="grid gap-3 text-sm">
             {acimaLimite.slice(0, 6).map((d) => (
-              <li key={d[0]!.user_id + d[0]!.data_local} className="flex items-start gap-3 rounded-lg bg-danger-soft p-3 text-danger-soft-foreground">
+              <li key={(d[0]?.user_id ?? "") + (d[0]?.data_local ?? "")} className="flex items-start gap-3 rounded-lg bg-danger-soft p-3 text-danger-soft-foreground">
                 <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-                <span><b>{nome(d[0]!.user_id)}</b> trabalhou {formatarMinutos(minutosTrabalhados(d), false)} em {formatarData(d[0]!.data_local)} (limite {r && formatarMinutos(r.limite_diario_min, false)}).</span>
+                <span><b>{nome((d[0]?.user_id ?? ""))}</b> trabalhou {formatarMinutos(minutosTrabalhados(d), false)} em {formatarData((d[0]?.data_local ?? ""))} (limite {r && formatarMinutos(r.limite_diario_min, false)}).</span>
               </li>
             ))}
             {proxVenc > 0 && <li className="flex items-start gap-3 rounded-lg bg-warning p-3 text-warning-foreground"><Hourglass className="mt-0.5 size-4 shrink-0" />{proxVenc} colaborador(es) com horas próximas do vencimento (15 dias).</li>}
-            {!acimaLimite.length && !proxVenc && <li className="flex items-center gap-2 text-muted-foreground"><Badge variant="success">OK</Badge>Nenhum alerta no período.</li>}
+            {foraArea > 0 && <li className="rounded-lg bg-warning p-3 text-warning-foreground"><b>{foraArea}</b> marcações fora da área.</li>}
+            {divergentes > 0 && <li className="rounded-lg bg-warning p-3 text-warning-foreground"><b>{divergentes}</b> marcações com relógio divergente.</li>}
+            {!acimaLimite.length && !proxVenc && !foraArea && !divergentes && <li className="flex items-center gap-2 text-muted-foreground"><Badge variant="success">OK</Badge>Nenhum alerta no período.</li>}
           </ul>
         </Panel>
       </div>
