@@ -34,3 +34,5 @@ use the editor.
 - Request approval/rejection only via the `decidir_solicitacao` SQL function (security definer: checks gestor role, blocks self-approval, writes audit fields); clients have no UPDATE on `solicitacoes`/`marcacoes`.
 - Punches store device local date/time + tz offset; `created_at` is the server audit timestamp — never overwrite one with the other.
 - Roles live in `user_roles` (`colaborador`, `gestor`); first signed-up user becomes gestor via the signup trigger.
+- App punches must use `registrar_marcacao`; authenticated direct INSERT is revoked so geolocation policy cannot be bypassed. SQL recalculates geolocation and device/server clock divergence; approval remains exclusively in `decidir_solicitacao`.
+- Geolocation is requested only on explicit registration/retry actions, never watched; pure preview helpers live in `src/lib/geo.ts` with tests, while SQL is authoritative.

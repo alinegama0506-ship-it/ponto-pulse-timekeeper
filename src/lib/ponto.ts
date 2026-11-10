@@ -44,10 +44,6 @@ export interface Regras {
   tolerancia_min: number;
   limite_diario_min: number;
   validade_banco_dias: number;
-  geo_modo?: import("./geo").GeoModo;
-  precisao_max_m?: number;
-  divergencia_max_s?: number;
-  geo_aviso?: string;
 }
 
 /** Next punch type for the day, or null when the four are done. */

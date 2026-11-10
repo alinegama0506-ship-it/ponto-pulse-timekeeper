@@ -23,7 +23,7 @@ export function GeoRegistro({ tipo, disabled }: { tipo: TipoMarcacao | null; dis
     try { p = await obterPosicao(); } catch (e) { p = { falha: (e as { code?: number }).code === 1 ? "sem_permissao" : "indisponivel" }; }
     if (atual !== tentativa.current) return;
     setPos(p);
-    const { data, error: err } = await supabase.rpc("avaliar_localizacao", { _latitude: p.latitude, _longitude: p.longitude, _precisao_m: p.precisao_m, _falha: p.falha });
+    const { data, error: err } = await supabase.rpc("avaliar_localizacao", { ...(p.latitude !== undefined && p.longitude !== undefined && p.precisao_m !== undefined ? { _latitude: p.latitude, _longitude: p.longitude, _precisao_m: p.precisao_m } : {}), _falha: p.falha });
     if (atual !== tentativa.current) return;
     if (err) setError(err.message); else setGeo(data as unknown as GeoResultado);
     setLoading(false);
@@ -32,7 +32,7 @@ export function GeoRegistro({ tipo, disabled }: { tipo: TipoMarcacao | null; dis
   const registrar = useMutation({ mutationFn: async () => {
     if (!tipo || !geo || !podeConfirmarGeo(geo.geo_status, geo.geo_modo, just)) throw new Error("Confira a localização e a justificativa.");
     const c = capturarMomentoLocal();
-    const { error } = await supabase.rpc("registrar_marcacao", { _tipo: tipo, _momento_dispositivo: c.momento_dispositivo, _data_local: c.data_local, _hora_local: c.hora_local, _tz_offset_min: c.tz_offset_min, _timezone: c.timezone ?? undefined, _latitude: pos.latitude, _longitude: pos.longitude, _precisao_m: pos.precisao_m, _falha: pos.falha, _justificativa: just.trim() || undefined });
+    const { error } = await supabase.rpc("registrar_marcacao", { _tipo: tipo, _momento_dispositivo: c.momento_dispositivo, _data_local: c.data_local, _hora_local: c.hora_local, _tz_offset_min: c.tz_offset_min, ...(c.timezone ? { _timezone: c.timezone } : {}), ...(pos.latitude !== undefined && pos.longitude !== undefined && pos.precisao_m !== undefined ? { _latitude: pos.latitude, _longitude: pos.longitude, _precisao_m: pos.precisao_m } : {}), _falha: pos.falha, ...(just.trim() ? { _justificativa: just.trim() } : {}) });
     if (error) throw new Error(error.code === "23505" ? "Esta marcação já foi registrada hoje." : error.message);
     return `${TIPO_LABEL[tipo]} registrada às ${c.hora_local}`;
   }, onSuccess: message => { toast.success(message); setOpen(false); qc.invalidateQueries({ queryKey: ["marcacoes"] }); }, onError: (e: Error) => setError(e.message) });
