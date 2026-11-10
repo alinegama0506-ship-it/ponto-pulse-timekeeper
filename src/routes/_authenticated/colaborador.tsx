@@ -17,7 +17,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { statusVariant } from "@/lib/gestor-queries";
 
 export const Route = createFileRoute("/_authenticated/colaborador")({
-  head: () => ({ meta: [{ title: "Meu ponto — Ponto Inteligente" }, { name: "description", content: "Registre seu ponto e acompanhe seu banco de horas." }] }),
+  head: () => ({ meta: [{ title: "Meu ponto — Ponto Inteligente" }, { property: "og:title", content: "Meu ponto — Ponto Inteligente" }, { property: "og:description", content: "Registre seu ponto e acompanhe seu banco de horas." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Registre seu ponto e acompanhe seu banco de horas." }] }),
   component: Colaborador,
 });
 

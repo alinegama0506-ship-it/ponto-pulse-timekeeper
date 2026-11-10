@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 type Regras = Database["public"]["Tables"]["regras"]["Row"];
 
 export const Route = createFileRoute("/_authenticated/gestor/regras")({
-  head: () => ({ meta: [{ title: "Regras e transparência — Ponto Inteligente" }, { name: "description", content: "Tolerância, limite diário e validade do banco de horas." }] }),
+  head: () => ({ meta: [{ title: "Regras e transparência — Ponto Inteligente" }, { property: "og:title", content: "Regras e transparência — Ponto Inteligente" }, { property: "og:description", content: "Tolerância, limite diário e validade do banco de horas." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Tolerância, limite diário e validade do banco de horas." }] }),
   component: RegrasPage,
 });
 

@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Entrar — Ponto Inteligente" },
+      { title: "Entrar — Ponto Inteligente" }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
       { name: "description", content: "Acesse sua conta do Ponto Inteligente." },
       { property: "og:title", content: "Entrar — Ponto Inteligente" },
       { property: "og:description", content: "Acesse sua conta do Ponto Inteligente." },

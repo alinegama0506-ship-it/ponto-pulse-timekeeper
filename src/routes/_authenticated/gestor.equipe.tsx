@@ -15,7 +15,7 @@ import { useRegras } from "@/lib/queries";
 import { TIPOS, TIPO_LABEL, agruparPorDia, formatarData, formatarHora, formatarMinutos, minutosTrabalhados, saldoBanco, saldoDia } from "@/lib/ponto";
 
 export const Route = createFileRoute("/_authenticated/gestor/equipe")({
-  head: () => ({ meta: [{ title: "Equipe — Ponto Inteligente" }, { name: "description", content: "Jornadas, faltas, atrasos e saldo por colaborador." }] }),
+  head: () => ({ meta: [{ title: "Equipe — Ponto Inteligente" }, { property: "og:title", content: "Equipe — Ponto Inteligente" }, { property: "og:description", content: "Jornadas, faltas, atrasos e saldo por colaborador." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Jornadas, faltas, atrasos e saldo por colaborador." }] }),
   component: Equipe,
 });
 

@@ -10,7 +10,7 @@ import { useRegras } from "@/lib/queries";
 import { agruparPorDia, dataLocalHoje, formatarData, formatarMinutos, jornadaCompleta, minutosTrabalhados, saldoBanco } from "@/lib/ponto";
 
 export const Route = createFileRoute("/_authenticated/gestor/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard — Ponto Inteligente" }, { name: "description", content: "Indicadores de jornada e banco de horas." }] }),
+  head: () => ({ meta: [{ title: "Dashboard — Ponto Inteligente" }, { property: "og:title", content: "Dashboard — Ponto Inteligente" }, { property: "og:description", content: "Indicadores de jornada e banco de horas." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Indicadores de jornada e banco de horas." }] }),
   component: Dashboard,
 });
 
