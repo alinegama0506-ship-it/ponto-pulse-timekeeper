@@ -7,14 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MOTIVO_LABEL, TIPOS, TIPO_LABEL, dataLocalHoje, validarSolicitacao, type Motivo, type TipoMarcacao } from "@/lib/ponto";
+import { MOTIVO_LABEL, TIPOS, TIPO_LABEL, dataLocalHoje, validarSolicitacao, type ErrosSolicitacao, type Motivo, type TipoMarcacao } from "@/lib/ponto";
 
 const vazio = { data_solicitada: "", hora_solicitada: "", tipo: "", motivo: "", observacao: "" };
 
 export function SolicitacaoForm({ onDone }: { onDone?: () => void }) {
   const qc = useQueryClient();
   const [v, setV] = useState(vazio);
-  const [erros, setErros] = useState<Record<string, string>>({});
+  const [erros, setErros] = useState<ErrosSolicitacao>({});
   const set = (k: keyof typeof vazio, val: string) => setV((s) => ({ ...s, [k]: val }));
 
   const m = useMutation({
@@ -48,7 +48,7 @@ export function SolicitacaoForm({ onDone }: { onDone?: () => void }) {
     if (Object.keys(er).length === 0) m.mutate();
   };
 
-  const err = (k: string) =>
+  const err = (k: keyof ErrosSolicitacao) =>
     erros[k] ? (
       <p id={`${k}-erro`} role="alert" className="text-xs font-medium text-destructive">
         {erros[k]}

@@ -73,9 +73,9 @@ function Dashboard() {
         <Panel title="Alertas">
           <ul className="grid gap-3 text-sm">
             {acimaLimite.slice(0, 6).map((d) => (
-              <li key={d[0].user_id + d[0].data_local} className="flex items-start gap-3 rounded-lg bg-danger-soft p-3 text-danger-soft-foreground">
+              <li key={d[0]!.user_id + d[0]!.data_local} className="flex items-start gap-3 rounded-lg bg-danger-soft p-3 text-danger-soft-foreground">
                 <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-                <span><b>{nome(d[0].user_id)}</b> trabalhou {formatarMinutos(minutosTrabalhados(d), false)} em {formatarData(d[0].data_local)} (limite {r && formatarMinutos(r.limite_diario_min, false)}).</span>
+                <span><b>{nome(d[0]!.user_id)}</b> trabalhou {formatarMinutos(minutosTrabalhados(d), false)} em {formatarData(d[0]!.data_local)} (limite {r && formatarMinutos(r.limite_diario_min, false)}).</span>
               </li>
             ))}
             {proxVenc > 0 && <li className="flex items-start gap-3 rounded-lg bg-warning p-3 text-warning-foreground"><Hourglass className="mt-0.5 size-4 shrink-0" />{proxVenc} colaborador(es) com horas próximas do vencimento (15 dias).</li>}

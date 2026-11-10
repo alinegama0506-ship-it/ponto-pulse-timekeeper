@@ -32,7 +32,7 @@ function Equipe() {
   const id = sel || profiles.data?.[0]?.id || "";
   const p = profiles.data?.find((x) => x.id === id);
   const ms = (marc.data ?? []).filter((m) => m.user_id === id);
-  const dias = [...agruparPorDia(ms).values()].sort((a, b) => b[0].data_local.localeCompare(a[0].data_local));
+  const dias = [...agruparPorDia(ms).values()].sort((a, b) => b[0]!.data_local.localeCompare(a[0]!.data_local));
   const r = regras.data;
   const comMarc = new Set(ms.map((m) => m.data_local));
   const faltas = diasUteis(desde).filter((d) => !comMarc.has(d)).length;
@@ -61,7 +61,7 @@ function Equipe() {
             {dias.length ? <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
               <thead><tr className="border-b text-left text-xs text-muted-foreground"><th className="py-2">Data</th>{TIPOS.map((t) => <th key={t}>{TIPO_LABEL[t]}</th>)}<th>Trabalhado</th><th className="text-right">Saldo</th></tr></thead>
               <tbody className="divide-y">{dias.map((d) => (
-                <tr key={d[0].data_local}><td className="py-2.5 font-medium">{formatarData(d[0].data_local)}</td>
+                <tr key={d[0]!.data_local}><td className="py-2.5 font-medium">{formatarData(d[0]!.data_local)}</td>
                   {TIPOS.map((t) => { const m = d.find((x) => x.tipo === t); return <td key={t} className="tabular">{m ? formatarHora(m.momento_dispositivo) : "—"}</td>; })}
                   <td className="tabular">{formatarMinutos(minutosTrabalhados(d), false)}</td>
                   <td className="tabular text-right font-semibold">{formatarMinutos(saldoDia(d, r))}</td></tr>
