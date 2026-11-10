@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { Clock3, Fingerprint, LayoutDashboard, LogOut } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Clock3, LayoutDashboard, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { GeoRegistro } from "@/components/ponto/GeoRegistro";
+import { useLocais } from "@/lib/geo-queries";
 import { Clock } from "@/components/ponto/Clock";
 import { SolicitacaoForm } from "@/components/ponto/SolicitacaoForm";
 import { sair, useMe, useRegras } from "@/lib/queries";
@@ -16,7 +17,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { statusVariant } from "@/lib/gestor-queries";
 
 export const Route = createFileRoute("/_authenticated/colaborador")({
-  head: () => ({ meta: [{ title: "Meu ponto — Ponto Inteligente" }, { name: "description", content: "Registre seu ponto e acompanhe seu banco de horas." }] }),
+  head: () => ({ meta: [{ title: "Meu ponto — Ponto Inteligente" }, { property: "og:title", content: "Meu ponto — Ponto Inteligente" }, { property: "og:description", content: "Registre seu ponto e acompanhe seu banco de horas." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Registre seu ponto e acompanhe seu banco de horas." }] }),
   component: Colaborador,
 });
 
@@ -27,12 +28,14 @@ function Colaborador() {
   const me = useMe();
   const regras = useRegras();
   const uid = me.data?.user.id;
+  const locais = useLocais();
 
   const marc = useQuery({
     queryKey: ["marcacoes", uid],
     enabled: !!uid,
     queryFn: async () => {
-      const { data, error } = await supabase.from("marcacoes").select("*").eq("user_id", uid!).order("momento_dispositivo", { ascending: false }).limit(500);
+      if (!uid) throw new Error("Sessão expirada");
+      const { data, error } = await supabase.from("marcacoes").select("*").eq("user_id", uid).order("momento_dispositivo", { ascending: false }).limit(500);
       if (error) throw error;
       return data;
     },
@@ -41,7 +44,8 @@ function Colaborador() {
     queryKey: ["solicitacoes", uid],
     enabled: !!uid,
     queryFn: async () => {
-      const { data, error } = await supabase.from("solicitacoes").select("*").eq("user_id", uid!).order("created_at", { ascending: false }).limit(50);
+      if (!uid) throw new Error("Sessão expirada");
+      const { data, error } = await supabase.from("solicitacoes").select("*").eq("user_id", uid).order("created_at", { ascending: false }).limit(50);
       if (error) throw error;
       return data;
     },
@@ -50,21 +54,6 @@ function Colaborador() {
   const hoje = dataLocalHoje();
   const deHoje = (marc.data ?? []).filter((m) => m.data_local === hoje);
   const proximo = proximoTipo(deHoje.map((m) => m.tipo));
-
-  const registrar = useMutation({
-    mutationFn: async () => {
-      if (!proximo) throw new Error("As quatro marcações de hoje já foram feitas.");
-      const c = capturarMomentoLocal(new Date()); // captured at the instant of the click
-      const { error } = await supabase.from("marcacoes").insert({ ...c, tipo: proximo, origem: "app" });
-      if (error) throw new Error(error.code === "23505" ? "Esta marcação já foi registrada hoje." : error.message);
-      return c.hora_local;
-    },
-    onSuccess: (h) => {
-      toast.success(`${TIPO_LABEL[proximo!]} registrada às ${h}`);
-      qc.invalidateQueries({ queryKey: ["marcacoes"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
 
   const saldo = regras.data && marc.data ? saldoBanco(marc.data, regras.data) : null;
   const dias = [...agruparPorDia(marc.data ?? []).entries()].slice(0, 14);
@@ -92,15 +81,15 @@ function Colaborador() {
                 <div key={t} className={`rounded-xl border p-3 text-center ${m ? "bg-success" : "bg-muted"}`}>
                   <div className="text-[11px] font-semibold text-muted-foreground">{TIPO_LABEL[t]}</div>
                   <div className="tabular mt-1 text-lg font-bold">{m ? formatarHora(m.momento_dispositivo) : "--:--"}</div>
-                  {m?.origem === "ajuste" && <div className="text-[10px] font-semibold text-success-foreground">ajuste aprovado</div>}
+                  {m && <Badge variant="outline" className="mt-2 whitespace-normal text-[10px]">{m.geo_status === "dentro" ? locais.data?.find(l => l.id === m.local_id)?.nome ?? "Dentro da área" : m.latitude === null ? "Sem localização" : m.geo_status === "dispensado" ? "Dispensado" : "Fora da área"}</Badge>}
+                   {m?.origem === "ajuste" && <div className="text-[10px] font-semibold text-success-foreground">ajuste aprovado</div>}
                 </div>
               );
             })}
           </div>
-          <Button size="lg" className="mt-5 h-14 w-full text-base" disabled={!proximo || registrar.isPending || !marc.data} onClick={() => registrar.mutate()}>
-            <Fingerprint className="size-5" />
-            {proximo ? `Registrar ${TIPO_LABEL[proximo].toLowerCase()}` : "Jornada do dia concluída"}
-          </Button>
+          <GeoRegistro tipo={proximo} disabled={!marc.data || marc.isError} />
+          {marc.isPending && <p role="status" className="text-sm text-muted-foreground">Carregando marcações…</p>}
+          {(marc.isError || regras.isError) && <p role="alert" className="text-sm text-destructive">Não foi possível carregar o ponto ou as regras. <Button variant="outline" className="min-h-11" onClick={() => { void marc.refetch(); void regras.refetch(); }}>Tentar de novo</Button></p>}
           <p className="mt-2 text-center text-xs text-muted-foreground">Usa o horário do seu dispositivo no instante do clique.</p>
         </section>
 
@@ -147,7 +136,7 @@ function Colaborador() {
           {dias.length ? <div className="overflow-x-auto"><table className="w-full min-w-[480px] text-sm">
             <thead><tr className="text-left text-xs text-muted-foreground"><th className="py-2">Data</th>{TIPOS.map((t) => <th key={t} className="py-2">{TIPO_LABEL[t].split(" ")[0]}{t.includes("intervalo") ? " int." : ""}</th>)}<th className="py-2">Trabalhado</th><th className="py-2">Saldo</th></tr></thead>
             <tbody className="divide-y">{dias.map(([k, d]) => (
-              <tr key={k}><td className="py-2 font-medium">{formatarData(d[0]!.data_local)}</td>
+              <tr key={k}><td className="py-2 font-medium">{formatarData(d[0]?.data_local ?? "")}</td>
                 {TIPOS.map((t) => { const m = d.find((x) => x.tipo === t); return <td key={t} className="tabular py-2">{m ? formatarHora(m.momento_dispositivo) : "—"}</td>; })}
                 <td className="tabular py-2">{formatarMinutos(minutosTrabalhados(d), false)}</td>
                 <td className="tabular py-2 font-semibold">{regras.data ? formatarMinutos(saldoDia(d, regras.data)) : ""}</td></tr>

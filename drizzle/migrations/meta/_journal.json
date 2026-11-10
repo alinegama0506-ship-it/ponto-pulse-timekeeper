@@ -15,6 +15,13 @@
       "when": 1794329146942,
       "tag": "0001_definir_papel",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794332976277,
+      "tag": "0002_geolocalizacao_ponto",
+      "breakpoints": true
     }
   ]
 }

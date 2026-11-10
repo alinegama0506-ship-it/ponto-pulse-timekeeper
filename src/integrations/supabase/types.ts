@@ -14,16 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
+      colaborador_locais: {
+        Row: {
+          local_id: string
+          user_id: string
+        }
+        Insert: {
+          local_id: string
+          user_id: string
+        }
+        Update: {
+          local_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "colaborador_locais_local_id_fkey"
+            columns: ["local_id"]
+            isOneToOne: false
+            referencedRelation: "locais_trabalho"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "colaborador_locais_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      locais_trabalho: {
+        Row: {
+          ativo: boolean
+          endereco: string
+          id: string
+          latitude: number
+          longitude: number
+          nome: string
+          raio_m: number
+        }
+        Insert: {
+          ativo?: boolean
+          endereco?: string
+          id?: string
+          latitude: number
+          longitude: number
+          nome: string
+          raio_m?: number
+        }
+        Update: {
+          ativo?: boolean
+          endereco?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          nome?: string
+          raio_m?: number
+        }
+        Relationships: []
+      }
       marcacoes: {
         Row: {
           aprovado_em: string | null
           aprovado_por: string | null
           created_at: string
           data_local: string
+          distancia_m: number | null
+          divergencia_relogio_s: number | null
+          geo_justificativa: string | null
+          geo_status: string
           hora_local: string
           id: string
+          latitude: number | null
+          local_id: string | null
+          longitude: number | null
           momento_dispositivo: string
           origem: string
+          precisao_m: number | null
           solicitacao_id: string | null
           timezone: string | null
           tipo: Database["public"]["Enums"]["tipo_marcacao"]
@@ -35,10 +103,18 @@ export type Database = {
           aprovado_por?: string | null
           created_at?: string
           data_local: string
+          distancia_m?: number | null
+          divergencia_relogio_s?: number | null
+          geo_justificativa?: string | null
+          geo_status?: string
           hora_local: string
           id?: string
+          latitude?: number | null
+          local_id?: string | null
+          longitude?: number | null
           momento_dispositivo: string
           origem?: string
+          precisao_m?: number | null
           solicitacao_id?: string | null
           timezone?: string | null
           tipo: Database["public"]["Enums"]["tipo_marcacao"]
@@ -50,10 +126,18 @@ export type Database = {
           aprovado_por?: string | null
           created_at?: string
           data_local?: string
+          distancia_m?: number | null
+          divergencia_relogio_s?: number | null
+          geo_justificativa?: string | null
+          geo_status?: string
           hora_local?: string
           id?: string
+          latitude?: number | null
+          local_id?: string | null
+          longitude?: number | null
           momento_dispositivo?: string
           origem?: string
+          precisao_m?: number | null
           solicitacao_id?: string | null
           timezone?: string | null
           tipo?: Database["public"]["Enums"]["tipo_marcacao"]
@@ -61,6 +145,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "marcacoes_local_id_fkey"
+            columns: ["local_id"]
+            isOneToOne: false
+            referencedRelation: "locais_trabalho"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "marcacoes_solicitacao_id_fkey"
             columns: ["solicitacao_id"]
@@ -76,7 +167,9 @@ export type Database = {
           cargo: string | null
           created_at: string
           email: string | null
+          geo_aviso_visto_em: string | null
           id: string
+          modalidade: string
           nome: string
         }
         Insert: {
@@ -84,7 +177,9 @@ export type Database = {
           cargo?: string | null
           created_at?: string
           email?: string | null
+          geo_aviso_visto_em?: string | null
           id: string
+          modalidade?: string
           nome?: string
         }
         Update: {
@@ -92,7 +187,9 @@ export type Database = {
           cargo?: string | null
           created_at?: string
           email?: string | null
+          geo_aviso_visto_em?: string | null
           id?: string
+          modalidade?: string
           nome?: string
         }
         Relationships: []
@@ -100,25 +197,37 @@ export type Database = {
       regras: {
         Row: {
           atualizado_em: string
+          divergencia_max_s: number
+          geo_aviso: string
+          geo_modo: string
           id: number
           jornada_diaria_min: number
           limite_diario_min: number
+          precisao_max_m: number
           tolerancia_min: number
           validade_banco_dias: number
         }
         Insert: {
           atualizado_em?: string
+          divergencia_max_s?: number
+          geo_aviso?: string
+          geo_modo?: string
           id?: number
           jornada_diaria_min?: number
           limite_diario_min?: number
+          precisao_max_m?: number
           tolerancia_min?: number
           validade_banco_dias?: number
         }
         Update: {
           atualizado_em?: string
+          divergencia_max_s?: number
+          geo_aviso?: string
+          geo_modo?: string
           id?: number
           jornada_diaria_min?: number
           limite_diario_min?: number
+          precisao_max_m?: number
           tolerancia_min?: number
           validade_banco_dias?: number
         }
@@ -195,6 +304,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      avaliar_localizacao: {
+        Args: {
+          _falha?: string
+          _latitude?: number
+          _longitude?: number
+          _precisao_m?: number
+        }
+        Returns: Json
+      }
+      calcular_geo: {
+        Args: {
+          _falha: string
+          _latitude: number
+          _longitude: number
+          _precisao_m: number
+          _uid: string
+        }
+        Returns: Json
+      }
       decidir_solicitacao: {
         Args: { _aprovar: boolean; _id: string; _justificativa?: string }
         Returns: undefined
@@ -203,12 +331,33 @@ export type Database = {
         Args: { _gestor: boolean; _user_id: string }
         Returns: undefined
       }
+      distancia_haversine: {
+        Args: { _lat1: number; _lat2: number; _lng1: number; _lng2: number }
+        Returns: number
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      registrar_ciencia_geo: { Args: never; Returns: string }
+      registrar_marcacao: {
+        Args: {
+          _data_local: string
+          _falha?: string
+          _hora_local: string
+          _justificativa?: string
+          _latitude?: number
+          _longitude?: number
+          _momento_dispositivo: string
+          _precisao_m?: number
+          _timezone?: string
+          _tipo: Database["public"]["Enums"]["tipo_marcacao"]
+          _tz_offset_min: number
+        }
+        Returns: string
       }
     }
     Enums: {

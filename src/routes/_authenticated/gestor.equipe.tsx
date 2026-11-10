@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { MODALIDADES } from "@/lib/geo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useMe } from "@/lib/queries";
@@ -14,7 +15,7 @@ import { useRegras } from "@/lib/queries";
 import { TIPOS, TIPO_LABEL, agruparPorDia, formatarData, formatarHora, formatarMinutos, minutosTrabalhados, saldoBanco, saldoDia } from "@/lib/ponto";
 
 export const Route = createFileRoute("/_authenticated/gestor/equipe")({
-  head: () => ({ meta: [{ title: "Equipe — Ponto Inteligente" }, { name: "description", content: "Jornadas, faltas, atrasos e saldo por colaborador." }] }),
+  head: () => ({ meta: [{ title: "Equipe — Ponto Inteligente" }, { property: "og:title", content: "Equipe — Ponto Inteligente" }, { property: "og:description", content: "Jornadas, faltas, atrasos e saldo por colaborador." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Jornadas, faltas, atrasos e saldo por colaborador." }] }),
   component: Equipe,
 });
 
@@ -38,7 +39,7 @@ function Equipe() {
   const id = sel || profiles.data?.[0]?.id || "";
   const p = profiles.data?.find((x) => x.id === id);
   const ms = (marc.data ?? []).filter((m) => m.user_id === id);
-  const dias = [...agruparPorDia(ms).values()].sort((a, b) => b[0]!.data_local.localeCompare(a[0]!.data_local));
+  const dias = [...agruparPorDia(ms).values()].sort((a, b) => (b[0]?.data_local ?? "").localeCompare(a[0]?.data_local ?? ""));
   const r = regras.data;
   const comMarc = new Set(ms.map((m) => m.data_local));
   const faltas = diasUteis(desde).filter((d) => !comMarc.has(d)).length;
@@ -68,7 +69,7 @@ function Equipe() {
             {dias.length ? <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
               <thead><tr className="border-b text-left text-xs text-muted-foreground"><th className="py-2">Data</th>{TIPOS.map((t) => <th key={t}>{TIPO_LABEL[t]}</th>)}<th>Trabalhado</th><th className="text-right">Saldo</th></tr></thead>
               <tbody className="divide-y">{dias.map((d) => (
-                <tr key={d[0]!.data_local}><td className="py-2.5 font-medium">{formatarData(d[0]!.data_local)}</td>
+                <tr key={d[0]?.data_local ?? ""}><td className="py-2.5 font-medium">{formatarData(d[0]?.data_local ?? "")}</td>
                   {TIPOS.map((t) => { const m = d.find((x) => x.tipo === t); return <td key={t} className="tabular">{m ? formatarHora(m.momento_dispositivo) : "—"}</td>; })}
                   <td className="tabular">{formatarMinutos(minutosTrabalhados(d), false)}</td>
                   <td className="tabular text-right font-semibold">{formatarMinutos(saldoDia(d, r))}</td></tr>
@@ -92,6 +93,7 @@ function AcessosPanel() {
       return new Set(data.map((x) => x.user_id));
     },
   });
+  const modalidade = useMutation({ mutationFn: async (v: { id: string; modalidade: string }) => { const { error } = await supabase.from("profiles").update({ modalidade: v.modalidade }).eq("id", v.id); if (error) throw error; }, onSuccess: () => { toast.success("Modalidade atualizada."); qc.invalidateQueries({ queryKey: ["profiles"] }); qc.invalidateQueries({ queryKey: ["me"] }); }, onError: (e: Error) => toast.error(e.message) });
   const mut = useMutation({
     mutationFn: async (v: { id: string; gestor: boolean }) => {
       const { error } = await supabase.rpc("definir_gestor", { _user_id: v.id, _gestor: v.gestor });
@@ -110,7 +112,8 @@ function AcessosPanel() {
           return (
             <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm">
               <div><span className="font-medium">{p.nome}</span> <span className="text-muted-foreground">{p.email}</span></div>
-              <div className="flex items-center gap-2">
+              <div className="grid gap-1"><Label htmlFor={`modalidade-${p.id}`}>Modalidade</Label><Select value={p.modalidade} onValueChange={v => modalidade.mutate({ id: p.id, modalidade: v })} disabled={modalidade.isPending}><SelectTrigger id={`modalidade-${p.id}`} className="h-11 w-36"><SelectValue /></SelectTrigger><SelectContent>{Object.entries(MODALIDADES).map(([k,l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}</SelectContent></Select></div>
+              <div className="flex flex-wrap items-center gap-2">
                 <Badge variant={g ? "success" : "secondary"}>{g ? "Gestor/RH" : "Colaborador"}</Badge>
                 {!eu && <Button size="sm" variant="outline" className="min-h-11" disabled={mut.isPending || !roles.data}
                   onClick={() => mut.mutate({ id: p.id, gestor: !g })}>{g ? "Tornar colaborador" : "Tornar Gestor/RH"}</Button>}

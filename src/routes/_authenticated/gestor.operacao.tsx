@@ -13,11 +13,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { diasAtras, statusVariant, useProfiles, useTodasMarcacoes, useTodasSolicitacoes } from "@/lib/gestor-queries";
+import { GEO_LABEL, relogioDivergente } from "@/lib/geo";
+import { useLocais } from "@/lib/geo-queries";
+import { useRegras } from "@/lib/queries";
 import { useMe } from "@/lib/queries";
 import { MOTIVO_LABEL, STATUS_LABEL, TIPOS, TIPO_LABEL, formatarData, formatarHora } from "@/lib/ponto";
 
 export const Route = createFileRoute("/_authenticated/gestor/operacao")({
-  head: () => ({ meta: [{ title: "Operação — Ponto Inteligente" }, { name: "description", content: "Aprovação de ajustes e consulta de marcações." }] }),
+  head: () => ({ meta: [{ title: "Operação — Ponto Inteligente" }, { property: "og:title", content: "Operação — Ponto Inteligente" }, { property: "og:description", content: "Aprovação de ajustes e consulta de marcações." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Aprovação de ajustes e consulta de marcações." }] }),
   component: Operacao,
 });
 
@@ -27,6 +30,8 @@ function Operacao() {
   const qc = useQueryClient();
   const me = useMe();
   const profiles = useProfiles();
+  const locais = useLocais(); const regras = useRegras();
+  const [geoFiltro,setGeoFiltro] = useState("todos"); const [localFiltro,setLocalFiltro] = useState("todos");
   const sol = useTodasSolicitacoes();
   const [colab, setColab] = useState("todos");
   const [tipo, setTipo] = useState("todos");
@@ -42,7 +47,7 @@ function Operacao() {
     rows.filter((r) => (colab === "todos" || r.user_id === colab) && (tipo === "todos" || r.tipo === tipo) && (!de || data(r) >= de) && (!ate || data(r) <= ate));
 
   const solicitacoes = useMemo(() => filtra(sol.data ?? [], (s) => s.data_solicitada).filter((s) => status === "todos" || s.status === status), [sol.data, colab, tipo, status, de, ate]);
-  const marcacoes = useMemo(() => filtra(marc.data ?? [], (m) => m.data_local), [marc.data, colab, tipo, de, ate]);
+  const marcacoes = useMemo(() => filtra(marc.data ?? [], (m) => m.data_local).filter(m => (geoFiltro === "todos" || m.geo_status === geoFiltro) && (localFiltro === "todos" || m.local_id === localFiltro)), [marc.data, colab, tipo, de, ate, geoFiltro, localFiltro]);
 
   const decidir = useMutation({
     mutationFn: async (d: NonNullable<Decisao>) => {
@@ -59,13 +64,14 @@ function Operacao() {
   });
 
   const exportar = () => {
-    const linhas = [["Colaborador", "Data", "Tipo", "Hora", "Origem", "Fuso (min)", "Registrado no servidor"],
-      ...marcacoes.map((m) => [nome(m.user_id), m.data_local, TIPO_LABEL[m.tipo], m.hora_local, m.origem, String(m.tz_offset_min), m.created_at])];
+    const linhas = [["Colaborador", "Data", "Tipo", "Hora", "Origem", "Fuso (min)", "Registrado no servidor", "Latitude", "Longitude", "Precisão (m)", "Distância (m)", "Status geo", "Local", "Divergência (s)", "Justificativa geo"],
+      ...marcacoes.map((m) => [nome(m.user_id), m.data_local, TIPO_LABEL[m.tipo], m.hora_local, m.origem, String(m.tz_offset_min), m.created_at, m.latitude ?? "", m.longitude ?? "", m.precisao_m ?? "", m.distancia_m ?? "", m.geo_status, locais.data?.find(l=>l.id===m.local_id)?.nome ?? "", m.divergencia_relogio_s ?? "", m.geo_justificativa ?? ""])];
     const csv = linhas.map((l) => l.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";")).join("\n");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob(["\ufeff" + csv], { type: "text/csv" }));
     a.download = `marcacoes-${de || "inicio"}.csv`;
     a.click();
+    URL.revokeObjectURL(a.href);
   };
 
   return (
@@ -87,6 +93,9 @@ function Operacao() {
         </div>
       </Panel>
 
+      <div className="mt-4 grid gap-3 sm:grid-cols-2"><div className="grid gap-1"><Label htmlFor="f-geo">Status da localização</Label><Select value={geoFiltro} onValueChange={setGeoFiltro}><SelectTrigger id="f-geo" className="h-11"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="todos">Todos</SelectItem>{Object.entries(GEO_LABEL).map(([k,l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}</SelectContent></Select></div><div className="grid gap-1"><Label htmlFor="f-local">Local</Label><Select value={localFiltro} onValueChange={setLocalFiltro}><SelectTrigger id="f-local" className="h-11"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="todos">Todos</SelectItem>{locais.data?.map(l => <SelectItem key={l.id} value={l.id}>{l.nome}</SelectItem>)}</SelectContent></Select></div></div>
+      {(marc.isPending || sol.isPending) && <p role="status" className="mt-4">Carregando operação…</p>}
+      {(marc.isError || sol.isError) && <p role="alert" className="mt-4 text-destructive">Não foi possível carregar a operação. <Button className="min-h-11" variant="outline" onClick={() => { void marc.refetch(); void sol.refetch(); }}>Tentar de novo</Button></p>}
       <div className="mt-6 grid gap-6">
         <Panel title={`Solicitações de ajuste (${solicitacoes.length})`}>
           {solicitacoes.length ? <div className="overflow-x-auto"><table className="w-full min-w-[900px] text-sm">
@@ -119,12 +128,12 @@ function Operacao() {
 
         <Panel title={`Marcações e histórico (${marcacoes.length})`} action={<Button variant="outline" size="sm" className="min-h-11" onClick={exportar} disabled={!marcacoes.length}><Download className="size-4" />Exportar CSV</Button>}>
           {marcacoes.length ? <div className="max-h-[480px] overflow-auto"><table className="w-full min-w-[720px] text-sm">
-            <thead className="sticky top-0 bg-card"><tr className="border-b text-left text-xs text-muted-foreground"><th className="py-2">Colaborador</th><th>Data</th><th>Tipo</th><th>Hora (dispositivo)</th><th>Origem</th><th>Registrado no servidor</th></tr></thead>
+            <thead className="sticky top-0 bg-card"><tr className="border-b text-left text-xs text-muted-foreground"><th className="py-2">Colaborador</th><th>Data</th><th>Tipo</th><th>Hora (dispositivo)</th><th>Origem</th><th>Registrado no servidor</th><th>Localização</th><th>Local</th><th>Divergência</th></tr></thead>
             <tbody className="divide-y">{marcacoes.map((m) => (
               <tr key={m.id}><td className="py-2.5 font-medium">{nome(m.user_id)}</td><td className="tabular">{formatarData(m.data_local)}</td><td>{TIPO_LABEL[m.tipo]}</td>
                 <td className="tabular">{m.hora_local.slice(0, 5)}</td>
                 <td>{m.origem === "ajuste" ? <Badge variant="secondary">Ajuste · {nome(m.aprovado_por)}</Badge> : <Badge variant="outline">App</Badge>}</td>
-                <td className="tabular text-muted-foreground">{formatarData(m.created_at.slice(0, 10))} {formatarHora(m.created_at)}</td></tr>
+                <td className="tabular text-muted-foreground">{formatarData(m.created_at.slice(0, 10))} {formatarHora(m.created_at)}</td><td><Badge variant={m.geo_status === "dentro" || m.geo_status === "dispensado" ? "outline" : "warning"}>{GEO_LABEL[m.geo_status as keyof typeof GEO_LABEL]}</Badge>{m.geo_justificativa && <p className="max-w-48 whitespace-normal text-xs">{m.geo_justificativa}</p>}</td><td>{locais.data?.find(l => l.id===m.local_id)?.nome ?? "—"}{m.distancia_m !== null && <p className="text-xs">~{Math.round(m.distancia_m)} m</p>}</td><td>{m.divergencia_relogio_s === null ? "—" : <Badge variant={relogioDivergente(m.divergencia_relogio_s,regras.data?.divergencia_max_s ?? 300) ? "warning" : "outline"}>{relogioDivergente(m.divergencia_relogio_s,regras.data?.divergencia_max_s ?? 300) ? "Relógio divergente · " : ""}{Math.round(m.divergencia_relogio_s)} s</Badge>}</td></tr>
             ))}</tbody></table></div> : <p className="text-sm text-muted-foreground">Nenhuma marcação no período.</p>}
         </Panel>
       </div>
