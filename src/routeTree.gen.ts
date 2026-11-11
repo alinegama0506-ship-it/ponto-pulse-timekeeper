@@ -12,9 +12,15 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedAcessibilidadeRouteImport } from './routes/_authenticated/acessibilidade'
+import { Route as AuthenticatedAjudaRouteImport } from './routes/_authenticated/ajuda'
 import { Route as AuthenticatedColaboradorRouteImport } from './routes/_authenticated/colaborador'
+import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedGestorRouteImport } from './routes/_authenticated/gestor'
 import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
+import { Route as AuthenticatedPrivacidadeRouteImport } from './routes/_authenticated/privacidade'
+import { Route as AuthenticatedRegrasRouteImport } from './routes/_authenticated/regras'
+import { Route as AuthenticatedSobreRouteImport } from './routes/_authenticated/sobre'
 import { Route as AuthenticatedColaboradorIndexRouteImport } from './routes/_authenticated/colaborador.index'
 import { Route as AuthenticatedColaboradorHistoricoRouteImport } from './routes/_authenticated/colaborador.historico'
 import { Route as AuthenticatedColaboradorSemanaRouteImport } from './routes/_authenticated/colaborador.semana'
@@ -39,10 +45,27 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAcessibilidadeRoute =
+  AuthenticatedAcessibilidadeRouteImport.update({
+    id: '/acessibilidade',
+    path: '/acessibilidade',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAjudaRoute = AuthenticatedAjudaRouteImport.update({
+  id: '/ajuda',
+  path: '/ajuda',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedColaboradorRoute =
   AuthenticatedColaboradorRouteImport.update({
     id: '/colaborador',
     path: '/colaborador',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedConfiguracoesRoute =
+  AuthenticatedConfiguracoesRouteImport.update({
+    id: '/configuracoes',
+    path: '/configuracoes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedGestorRoute = AuthenticatedGestorRouteImport.update({
@@ -53,6 +76,22 @@ const AuthenticatedGestorRoute = AuthenticatedGestorRouteImport.update({
 const AuthenticatedInicioRoute = AuthenticatedInicioRouteImport.update({
   id: '/inicio',
   path: '/inicio',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPrivacidadeRoute =
+  AuthenticatedPrivacidadeRouteImport.update({
+    id: '/privacidade',
+    path: '/privacidade',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedRegrasRoute = AuthenticatedRegrasRouteImport.update({
+  id: '/regras',
+  path: '/regras',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSobreRoute = AuthenticatedSobreRouteImport.update({
+  id: '/sobre',
+  path: '/sobre',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedColaboradorIndexRoute =
@@ -113,9 +152,15 @@ const AuthenticatedGestorRegrasRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/acessibilidade': typeof AuthenticatedAcessibilidadeRoute
+  '/ajuda': typeof AuthenticatedAjudaRoute
   '/colaborador': typeof AuthenticatedColaboradorRouteWithChildren
+  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/gestor': typeof AuthenticatedGestorRouteWithChildren
   '/inicio': typeof AuthenticatedInicioRoute
+  '/privacidade': typeof AuthenticatedPrivacidadeRoute
+  '/regras': typeof AuthenticatedRegrasRoute
+  '/sobre': typeof AuthenticatedSobreRoute
   '/colaborador/historico': typeof AuthenticatedColaboradorHistoricoRoute
   '/colaborador/semana': typeof AuthenticatedColaboradorSemanaRoute
   '/colaborador/solicitacoes': typeof AuthenticatedColaboradorSolicitacoesRoute
@@ -129,8 +174,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/acessibilidade': typeof AuthenticatedAcessibilidadeRoute
+  '/ajuda': typeof AuthenticatedAjudaRoute
+  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/gestor': typeof AuthenticatedGestorRouteWithChildren
   '/inicio': typeof AuthenticatedInicioRoute
+  '/privacidade': typeof AuthenticatedPrivacidadeRoute
+  '/regras': typeof AuthenticatedRegrasRoute
+  '/sobre': typeof AuthenticatedSobreRoute
   '/colaborador/historico': typeof AuthenticatedColaboradorHistoricoRoute
   '/colaborador/semana': typeof AuthenticatedColaboradorSemanaRoute
   '/colaborador/solicitacoes': typeof AuthenticatedColaboradorSolicitacoesRoute
@@ -146,9 +197,15 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/acessibilidade': typeof AuthenticatedAcessibilidadeRoute
+  '/_authenticated/ajuda': typeof AuthenticatedAjudaRoute
   '/_authenticated/colaborador': typeof AuthenticatedColaboradorRouteWithChildren
+  '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/gestor': typeof AuthenticatedGestorRouteWithChildren
   '/_authenticated/inicio': typeof AuthenticatedInicioRoute
+  '/_authenticated/privacidade': typeof AuthenticatedPrivacidadeRoute
+  '/_authenticated/regras': typeof AuthenticatedRegrasRoute
+  '/_authenticated/sobre': typeof AuthenticatedSobreRoute
   '/_authenticated/colaborador/historico': typeof AuthenticatedColaboradorHistoricoRoute
   '/_authenticated/colaborador/semana': typeof AuthenticatedColaboradorSemanaRoute
   '/_authenticated/colaborador/solicitacoes': typeof AuthenticatedColaboradorSolicitacoesRoute
@@ -164,9 +221,15 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/acessibilidade'
+    | '/ajuda'
     | '/colaborador'
+    | '/configuracoes'
     | '/gestor'
     | '/inicio'
+    | '/privacidade'
+    | '/regras'
+    | '/sobre'
     | '/colaborador/historico'
     | '/colaborador/semana'
     | '/colaborador/solicitacoes'
@@ -180,8 +243,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/acessibilidade'
+    | '/ajuda'
+    | '/configuracoes'
     | '/gestor'
     | '/inicio'
+    | '/privacidade'
+    | '/regras'
+    | '/sobre'
     | '/colaborador/historico'
     | '/colaborador/semana'
     | '/colaborador/solicitacoes'
@@ -196,9 +265,15 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/acessibilidade'
+    | '/_authenticated/ajuda'
     | '/_authenticated/colaborador'
+    | '/_authenticated/configuracoes'
     | '/_authenticated/gestor'
     | '/_authenticated/inicio'
+    | '/_authenticated/privacidade'
+    | '/_authenticated/regras'
+    | '/_authenticated/sobre'
     | '/_authenticated/colaborador/historico'
     | '/_authenticated/colaborador/semana'
     | '/_authenticated/colaborador/solicitacoes'
@@ -239,11 +314,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/acessibilidade': {
+      id: '/_authenticated/acessibilidade'
+      path: '/acessibilidade'
+      fullPath: '/acessibilidade'
+      preLoaderRoute: typeof AuthenticatedAcessibilidadeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ajuda': {
+      id: '/_authenticated/ajuda'
+      path: '/ajuda'
+      fullPath: '/ajuda'
+      preLoaderRoute: typeof AuthenticatedAjudaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/colaborador': {
       id: '/_authenticated/colaborador'
       path: '/colaborador'
       fullPath: '/colaborador'
       preLoaderRoute: typeof AuthenticatedColaboradorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracoes': {
+      id: '/_authenticated/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/gestor': {
@@ -258,6 +354,27 @@ declare module '@tanstack/react-router' {
       path: '/inicio'
       fullPath: '/inicio'
       preLoaderRoute: typeof AuthenticatedInicioRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/privacidade': {
+      id: '/_authenticated/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof AuthenticatedPrivacidadeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/regras': {
+      id: '/_authenticated/regras'
+      path: '/regras'
+      fullPath: '/regras'
+      preLoaderRoute: typeof AuthenticatedRegrasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sobre': {
+      id: '/_authenticated/sobre'
+      path: '/sobre'
+      fullPath: '/sobre'
+      preLoaderRoute: typeof AuthenticatedSobreRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/colaborador/': {
@@ -368,15 +485,27 @@ const AuthenticatedGestorRouteWithChildren =
   AuthenticatedGestorRoute._addFileChildren(AuthenticatedGestorRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAcessibilidadeRoute: typeof AuthenticatedAcessibilidadeRoute
+  AuthenticatedAjudaRoute: typeof AuthenticatedAjudaRoute
   AuthenticatedColaboradorRoute: typeof AuthenticatedColaboradorRouteWithChildren
+  AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedGestorRoute: typeof AuthenticatedGestorRouteWithChildren
   AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
+  AuthenticatedPrivacidadeRoute: typeof AuthenticatedPrivacidadeRoute
+  AuthenticatedRegrasRoute: typeof AuthenticatedRegrasRoute
+  AuthenticatedSobreRoute: typeof AuthenticatedSobreRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAcessibilidadeRoute: AuthenticatedAcessibilidadeRoute,
+  AuthenticatedAjudaRoute: AuthenticatedAjudaRoute,
   AuthenticatedColaboradorRoute: AuthenticatedColaboradorRouteWithChildren,
+  AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedGestorRoute: AuthenticatedGestorRouteWithChildren,
   AuthenticatedInicioRoute: AuthenticatedInicioRoute,
+  AuthenticatedPrivacidadeRoute: AuthenticatedPrivacidadeRoute,
+  AuthenticatedRegrasRoute: AuthenticatedRegrasRoute,
+  AuthenticatedSobreRoute: AuthenticatedSobreRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

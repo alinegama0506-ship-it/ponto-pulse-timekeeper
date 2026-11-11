@@ -1,11 +1,13 @@
 import { useNow } from "@/lib/queries";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export function Clock({ big = false, className }: { big?: boolean; className?: string }) {
   const now = useNow();
-  const hora = now ? now.toLocaleTimeString("pt-BR") : "--:--:--";
+  const { idioma } = useT();
+  const hora = now ? now.toLocaleTimeString(idioma) : "--:--:--";
   const data = now
-    ? now.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })
+    ? now.toLocaleDateString(idioma, { weekday: "long", day: "2-digit", month: "long", year: "numeric" })
     : "";
   if (big)
     return (

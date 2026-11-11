@@ -11,8 +11,11 @@ import { GEO_LABEL, obterPosicao, podeConfirmarGeo, type GeoResultado } from "@/
 import { capturarMomentoLocal, TIPO_LABEL, type TipoMarcacao } from "@/lib/ponto";
 import { useMe, useRegras } from "@/lib/queries";
 
+import { useT } from "@/lib/i18n";
+
 type Posicao = { latitude?: number; longitude?: number; precisao_m?: number; falha: "sem_permissao" | "indisponivel" };
 export function GeoRegistro({ tipo, disabled }: { tipo: TipoMarcacao | null; disabled: boolean }) {
+  const { t } = useT();
   const qc = useQueryClient(); const me = useMe(); const regras = useRegras();
   const [open, setOpen] = useState(false); const [aviso, setAviso] = useState(false); const [loading, setLoading] = useState(false);
   const [geo, setGeo] = useState<GeoResultado | null>(null); const [pos, setPos] = useState<Posicao>({ falha: "indisponivel" });
@@ -39,19 +42,19 @@ export function GeoRegistro({ tipo, disabled }: { tipo: TipoMarcacao | null; dis
   const iniciar = () => { setOpen(true); setJust(""); setError(""); setGeo(null); const primeiro = !me.data?.profile?.geo_aviso_visto_em; setAviso(primeiro); if (!primeiro) void capturar(); };
   const requerJust = geo && !["dentro","dispensado"].includes(geo.geo_status) && geo.geo_modo === "justificar";
   return <>
-    <Button size="lg" className="mt-5 h-14 w-full text-base" disabled={disabled || !tipo || !me.data || !regras.data} onClick={iniciar}><Fingerprint className="size-5" />{tipo ? `Registrar ${TIPO_LABEL[tipo].toLowerCase()}` : "Jornada do dia concluída"}</Button>
+    <Button size="lg" className="mt-5 h-14 w-full text-base" disabled={disabled || !tipo || !me.data || !regras.data} onClick={iniciar}><Fingerprint className="size-5" />{tipo ? `${t("Registrar")} ${t(TIPO_LABEL[tipo])}` : t("Jornada do dia concluída")}</Button>
     <Dialog open={open} onOpenChange={v => { if (!registrar.isPending && !ciencia.isPending) { setOpen(v); if (!v) tentativa.current++; } }}>
       <DialogContent className="max-h-[90dvh] overflow-y-auto max-sm:w-[calc(100%-24px)] rounded-lg">
-        <DialogHeader><DialogTitle>{aviso ? "Sua localização no ponto" : "Confirmar marcação"}</DialogTitle><DialogDescription>{aviso ? "Aviso de transparência" : tipo ? TIPO_LABEL[tipo] : "Registro de ponto"}</DialogDescription></DialogHeader>
-        {aviso ? <><p className="whitespace-pre-wrap text-sm">{regras.data?.geo_aviso}</p><Button className="min-h-11" disabled={ciencia.isPending} onClick={() => ciencia.mutate()}>{ciencia.isPending ? "Salvando…" : "Li o aviso e continuar"}</Button></> : <>
+        <DialogHeader><DialogTitle>{t(aviso ? "Sua localização no ponto" : "Confirmar marcação")}</DialogTitle><DialogDescription>{t(aviso ? "Aviso de transparência" : tipo ? TIPO_LABEL[tipo] : "Registro de ponto")}</DialogDescription></DialogHeader>
+        {aviso ? <><p className="whitespace-pre-wrap text-sm">{regras.data?.geo_aviso}</p><Button className="min-h-11" disabled={ciencia.isPending} onClick={() => ciencia.mutate()}>{t(ciencia.isPending ? "Salvando…" : "Li o aviso e continuar")}</Button></> : <>
           <div aria-live="polite" role="status" className="flex gap-3 rounded-lg border bg-muted p-4"><MapPin className="size-5 shrink-0" /><div className="text-sm">
-            {loading ? "Obtendo localização…" : geo ? <><b>{GEO_LABEL[geo.geo_status]}</b>{geo.local_nome && <p>{geo.local_nome}{geo.distancia_m !== null ? ` (a ~${Math.round(geo.distancia_m)} m)` : ""}</p>}{geo.geo_status === "precisao_baixa" && <p>±{Math.round(pos.precisao_m ?? 0)} m: tente perto de uma janela ou ao ar livre.</p>}{geo.geo_status === "dispensado" && <p>{pos.latitude === undefined ? "Sem localização. Modalidade dispensada de bloqueio." : "Localização obtida. Modalidade dispensada de bloqueio."}</p>}</> : "Não foi possível conferir a localização."}
+            {loading ? t("Obtendo localização…") : geo ? <><b>{t(GEO_LABEL[geo.geo_status])}</b>{geo.local_nome && <p>{geo.local_nome}{geo.distancia_m !== null ? ` (a ~${Math.round(geo.distancia_m)} m)` : ""}</p>}{geo.geo_status === "precisao_baixa" && <p>±{Math.round(pos.precisao_m ?? 0)} m: tente perto de uma janela ou ao ar livre.</p>}{geo.geo_status === "dispensado" && <p>{pos.latitude === undefined ? "Sem localização. Modalidade dispensada de bloqueio." : "Localização obtida. Modalidade dispensada de bloqueio."}</p>}</> : t("Não foi possível conferir a localização.")}
           </div></div>
-          {geo?.geo_status === "sem_permissao" && <div className="text-sm"><p className="font-semibold">Liberar localização</p><ul className="mt-2 list-disc space-y-2 pl-5"><li>iPhone: Ajustes → Privacidade e Segurança → Serviços de Localização → Safari (ou seu navegador) → Durante o uso. No site, toque em aA → Ajustes do Site → Localização → Permitir.</li><li>Android: Configurações → Apps → seu navegador → Permissões → Localização → Permitir durante o uso. No navegador, abra as permissões deste site e permita Localização.</li><li>Computador: clique no ícone de permissões ao lado do endereço → Localização → Permitir. Confira também a permissão do navegador nas configurações do sistema.</li></ul></div>}
-          <Button variant="outline" className="min-h-11" disabled={loading || registrar.isPending} onClick={() => void capturar()}><RotateCw className="size-4" />Tentar de novo</Button>
-          {requerJust && <div className="grid gap-2"><Label htmlFor="geo-just">Justificativa obrigatória (mínimo 10 caracteres)</Label><Textarea id="geo-just" value={just} maxLength={1000} onChange={e => setJust(e.target.value)} /></div>}
-          {geo?.geo_modo === "bloquear" && !["dentro","dispensado"].includes(geo.geo_status) && <p className="text-sm text-destructive">Registro bloqueado pelas regras de localização.</p>}
-          <Button className="min-h-11" disabled={loading || registrar.isPending || !geo || !podeConfirmarGeo(geo.geo_status,geo.geo_modo,just)} onClick={() => registrar.mutate()}>{registrar.isPending ? "Registrando…" : "Confirmar registro"}</Button>
+          {geo?.geo_status === "sem_permissao" && <div className="text-sm"><p className="font-semibold">{t("Liberar localização")}</p><ul className="mt-2 list-disc space-y-2 pl-5"><li>iPhone: Ajustes → Privacidade e Segurança → Serviços de Localização → Safari (ou seu navegador) → Durante o uso. No site, toque em aA → Ajustes do Site → Localização → Permitir.</li><li>Android: Configurações → Apps → seu navegador → Permissões → Localização → Permitir durante o uso. No navegador, abra as permissões deste site e permita Localização.</li><li>Computador: clique no ícone de permissões ao lado do endereço → Localização → Permitir. Confira também a permissão do navegador nas configurações do sistema.</li></ul></div>}
+          <Button variant="outline" className="min-h-11" disabled={loading || registrar.isPending} onClick={() => void capturar()}><RotateCw className="size-4" />{t("Tentar de novo")}</Button>
+          {requerJust && <div className="grid gap-2"><Label htmlFor="geo-just">{t("Justificativa obrigatória (mínimo 10 caracteres)")}</Label><Textarea id="geo-just" value={just} maxLength={1000} onChange={e => setJust(e.target.value)} /></div>}
+          {geo?.geo_modo === "bloquear" && !["dentro","dispensado"].includes(geo.geo_status) && <p className="text-sm text-destructive">{t("Registro bloqueado pelas regras de localização.")}</p>}
+          <Button className="min-h-11" disabled={loading || registrar.isPending || !geo || !podeConfirmarGeo(geo.geo_status,geo.geo_modo,just)} onClick={() => registrar.mutate()}>{t(registrar.isPending ? "Registrando…" : "Confirmar registro")}</Button>
         </>}
         {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
       </DialogContent>
