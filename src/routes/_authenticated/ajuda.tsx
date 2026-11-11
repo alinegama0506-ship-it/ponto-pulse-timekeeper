@@ -1,0 +1,6 @@
+import { createFileRoute,Link } from '@tanstack/react-router';
+import { pageHead } from '@/lib/metadata';
+import { useT } from '@/lib/i18n';
+import { Button } from '@/components/ui/button';
+export const Route=createFileRoute('/_authenticated/ajuda')({head:()=>pageHead('Ajuda','Ajustes de ponto, localização e acesso à conta.'),component:Ajuda});
+function Ajuda(){const {t}=useT();return <article className="mx-auto max-w-3xl space-y-5"><h1 className="text-2xl font-bold">{t('Receber ajuda')}</h1><section lang="pt-BR" className="space-y-3"><h2 className="font-bold">Horário esquecido ou incorreto</h2><p>Envie uma solicitação de ajuste com data, horário e motivo. A decisão cabe ao Gestor/RH e não altera o saldo enquanto estiver pendente.</p><h2 className="font-bold">Localização negada</h2><p>Confira a permissão do site nas configurações do navegador e do dispositivo. Tente novamente perto de uma janela. Se não funcionar, informe o responsável da empresa.</p><h2 className="font-bold">Conta e privacidade</h2><p>Para acesso de gestão, dúvidas sobre a jornada ou direitos de dados, procure o Gestor/RH ou o responsável pela proteção de dados da sua empresa. Nenhum contato de suporte da empresa foi informado.</p></section><Button asChild className="min-h-11"><Link to="/colaborador/solicitacoes">{t('Solicitar ajuste de ponto')}</Link></Button></article>;}
