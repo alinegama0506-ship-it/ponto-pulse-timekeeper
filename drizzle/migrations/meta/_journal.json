@@ -29,6 +29,13 @@
       "when": 1794334016947,
       "tag": "0003_preferencias_conta",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794489979910,
+      "tag": "0004_scope_rules_and_work_locations_reads",
+      "breakpoints": true
     }
   ]
 }
