@@ -78,7 +78,7 @@ export function SolicitacaoForm({ onDone }: { onDone?: () => void }) {
         <Label htmlFor="tipo">{t("Tipo de marcação *")}</Label>
         <Select value={v.tipo} onValueChange={(x) => set("tipo", x)}>
           <SelectTrigger id="tipo" className="h-11" aria-invalid={!!erros.tipo}><SelectValue placeholder={t("Selecione")} /></SelectTrigger>
-          <SelectContent>{TIPOS.map((t) => <SelectItem key={t} value={t}>{t(TIPO_LABEL[t])}</SelectItem>)}</SelectContent>
+          <SelectContent>{TIPOS.map((tipo) => <SelectItem key={tipo} value={tipo}>{t(TIPO_LABEL[tipo])}</SelectItem>)}</SelectContent>
         </Select>
         {err("tipo")}
       </div>

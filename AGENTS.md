@@ -36,3 +36,6 @@ use the editor.
 - Roles live in `user_roles` (`colaborador`, `gestor`); first signed-up user becomes gestor via the signup trigger.
 - App punches must use `registrar_marcacao`; authenticated direct INSERT is revoked so geolocation policy cannot be bypassed. SQL recalculates geolocation and device/server clock divergence; approval remains exclusively in `decidir_solicitacao`.
 - Geolocation is requested only on explicit registration/retry actions, never watched; pure preview helpers live in `src/lib/geo.ts` with tests, while SQL is authoritative.
+- Authenticated routes share AppShell; manager routes only gate roles and render Outlet to avoid duplicate navigation and main landmarks.
+- Profile preferences are validated in the database and applied by PreferenciasProvider before authenticated content is revealed; translations and locale formatting use useT.
+- Personal exports scope every query to the authenticated user and paginate all records; CSV cells escape spreadsheet formulas.
