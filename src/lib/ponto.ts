@@ -144,3 +144,45 @@ export function validarSolicitacao(v: SolicitacaoInput, hoje: string): ErrosSoli
   if ((v.observacao ?? "").length > 1000) e.observacao = "Máximo de 1000 caracteres.";
   return e;
 }
+
+/** Calendar-only arithmetic avoids UTC shifts and DST-length assumptions. */
+export function deslocarData(data: string, dias: number) {
+  const d = new Date(`${data}T12:00:00`);
+  d.setDate(d.getDate() + dias);
+  return dataLocalHoje(d);
+}
+export function inicioSemana(data: string) {
+  const dia = new Date(`${data}T12:00:00`).getDay();
+  return deslocarData(data, -((dia + 6) % 7));
+}
+export function intervaloUsado(dia: MarcacaoLite[], agora?: Date): number {
+  const inicio = dia.find(m => m.tipo === 'saida_intervalo');
+  const fim = dia.find(m => m.tipo === 'retorno_intervalo');
+  if (!inicio) return 0;
+  const termino = fim ? new Date(fim.momento_dispositivo).getTime() : agora?.getTime();
+  return termino === undefined ? 0 : Math.max(0, Math.round((termino - new Date(inicio.momento_dispositivo).getTime()) / 60000));
+}
+export function saidaPrevista(dia: MarcacaoLite[], jornada: number, agora: Date): string | null {
+  const entrada = dia.find(m => m.tipo === 'entrada');
+  if (!entrada || dia.some(m => m.tipo === 'saida')) return null;
+  return new Date(new Date(entrada.momento_dispositivo).getTime() + (jornada + intervaloUsado(dia, agora)) * 60000).toISOString();
+}
+export type MarcacaoSemana = MarcacaoLite & { geo_status?: string; hora_local?: string };
+export type SolicitacaoSemana = { data_solicitada: string; status: StatusSolicitacao };
+export function resumoSemana(inicio: string, marcacoes: MarcacaoSemana[], solicitacoes: SolicitacaoSemana[], regras: Regras, hoje: string) {
+  const dias = Array.from({ length: 7 }, (_, i) => {
+    const data = deslocarData(inicio, i);
+    const marc = marcacoes.filter(m => m.data_local === data);
+    const pendente = solicitacoes.some(s => s.data_solicitada === data && s.status === 'pendente');
+    const completo = jornadaCompleta(marc);
+    const emAndamento = data === hoje && marc.some(m => m.tipo === 'entrada') && !marc.some(m => m.tipo === 'saida');
+    // No schedules, holidays or absences exist yet: never label no-punch days as legal absences.
+    const status = completo ? 'Completo' : emAndamento ? 'Em andamento' : marc.length ? 'Incompleto' : data > hoje ? 'Previsto' : i >= 5 ? 'Folga prevista' : 'Sem marcações';
+    const fora = marc.some(m => m.geo_status === 'fora');
+    const intervalo = intervaloUsado(marc);
+    return { data, marc, status, pendente, fora, trabalhado: minutosTrabalhados(marc), saldo: saldoDia(marc, regras), previsto: i < 5 ? regras.jornada_diaria_min : 0, faltaTipo: proximoTipo(marc.map(m => m.tipo)), intervaloCurto: !!marc.find(m => m.tipo === 'retorno_intervalo') && minutosTrabalhados(marc) > 360 && intervalo < 60 };
+  });
+  const trabalhado = dias.reduce((s, d) => s + d.trabalhado, 0);
+  const meta = regras.jornada_diaria_min * 5;
+  return { dias, trabalhado, meta, saldo: dias.reduce((s, d) => s + d.saldo, 0), aderencia: meta > 0 ? trabalhado / meta : 0 };
+}
