@@ -16,7 +16,7 @@ const vazio = { data_solicitada: "", hora_solicitada: "", tipo: "", motivo: "", 
 export function SolicitacaoForm({ onDone, dataInicial = "", tipoInicial = "" }: { onDone?: () => void; dataInicial?: string; tipoInicial?: TipoMarcacao | "" }) {
   const { t } = useT();
   const qc = useQueryClient();
-  const [v, setV] = useState({ ...vazio, data_solicitada: dataInicial, tipo: tipoInicial });
+  const [v, setV] = useState<typeof vazio>({ ...vazio, data_solicitada: dataInicial, tipo: tipoInicial });
   const [erros, setErros] = useState<ErrosSolicitacao>({});
   const set = (k: keyof typeof vazio, val: string) => setV((s) => ({ ...s, [k]: val }));
 
