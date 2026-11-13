@@ -15,7 +15,8 @@
 - [ ] Completar política formal de privacidade: faltam controlador, contato, base legal, prazo de guarda e compartilhamentos da empresa.
 
 # Fase 3 — Visão semanal
-- [ ] Cálculos puros e testes: semana seg–dom, meta provisória de 5 dias, saldo, intervalo e saída prevista.
-- [ ] Semana com indicadores, gráfico e tabela, detalhes por dia e ajuste preenchido.
-- [ ] Resumo semanal no Hoje, idiomas e leitura por período sem truncar o banco.
-- [ ] Testes e conferência autenticada em 380px e desktop.
+- [x] Cálculos puros e testes: semana seg–dom, meta provisória de 5 dias, saldo, intervalo e saída prevista.
+- [x] Semana com indicadores, gráfico e tabela, detalhes por dia e ajuste preenchido.
+- [x] Resumo semanal no Hoje, idiomas e leitura por período sem truncar o banco.
+- [x] 29 testes passando; conferência autenticada em 380px e desktop com sete dias, semana anterior, ajuste preenchido e resumo do Hoje. Nenhum registro fictício inserido.
+- [ ] Pontualidade, feriados/faltas confirmadas e vencimentos FIFO: dependem das escalas e dos lotes previstos na Fase 5; exibidos sem valores inventados.

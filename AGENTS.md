@@ -40,3 +40,4 @@ use the editor.
 - Profile preferences are validated in the database and applied by PreferenciasProvider before authenticated content is revealed; translations and locale formatting use useT.
 - Personal exports scope every query to the authenticated user and paginate all records; CSV cells escape spreadsheet formulas.
 - Rules SELECT is restricted to the configured company row and application roles; work-location SELECT gives managers all locations and collaborators eligible active locations plus locations referenced by their own punches, preserving historical labels without exposing unrelated locations.
+- Weekly reporting reuses pure helpers in ponto.ts and owner-scoped paginated queries; use the provisional five-day target without inventing schedules, holidays, punctuality or FIFO expiry before the schedule engine exists.
