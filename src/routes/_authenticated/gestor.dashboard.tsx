@@ -1,95 +1,32 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { AlertTriangle, CalendarClock, CheckCircle2, Clock3, Hourglass, Users } from "lucide-react";
-import { PageHeading, Panel } from "@/components/ponto/PageHeading";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { diasAtras, useProfiles, useTodasMarcacoes, useTodasSolicitacoes } from "@/lib/gestor-queries";
-import { relogioDivergente } from "@/lib/geo";
-import { useRegras } from "@/lib/queries";
-import { agruparPorDia, dataLocalHoje, formatarData, formatarMinutos, jornadaCompleta, minutosTrabalhados, saldoBanco } from "@/lib/ponto";
-
-export const Route = createFileRoute("/_authenticated/gestor/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard — Ponto Inteligente" }, { property: "og:title", content: "Dashboard — Ponto Inteligente" }, { property: "og:description", content: "Indicadores de jornada e banco de horas." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Indicadores de jornada e banco de horas." }] }),
-  component: Dashboard,
-});
-
-function Dashboard() {
-  const [periodo, setPeriodo] = useState("30");
-  const desde = diasAtras(Number(periodo));
-  const profiles = useProfiles();
-  const marc = useTodasMarcacoes(desde);
-  const sol = useTodasSolicitacoes();
-  const regras = useRegras();
-  const hoje = dataLocalHoje();
-  const r = regras.data;
-  const ms = marc.data ?? [];
-  const ativos = (profiles.data ?? []).filter((p) => p.ativo);
-  const dias = [...agruparPorDia(ms).values()];
-  const completas = dias.filter(jornadaCompleta).length;
-  const acimaLimite = r ? dias.filter((d) => minutosTrabalhados(d) > r.limite_diario_min) : [];
-  const foraArea = ms.filter(m => m.geo_status === "fora").length;
-  const divergentes = ms.filter(m => relogioDivergente(m.divergencia_relogio_s, r?.divergencia_max_s ?? 300)).length;
-  const pendentes = (sol.data ?? []).filter((s) => s.status === "pendente").length;
-  const vencimento = r ? diasAtras(r.validade_banco_dias - 15) : "";
-  const proxVenc = r ? new Set(ms.filter((m) => m.data_local <= vencimento).map((m) => m.user_id)).size : 0;
-  const porColab = r ? ativos.map((p) => ({ p, saldo: saldoBanco(ms.filter((m) => m.user_id === p.id), r) })) : [];
-  const consolidado = porColab.reduce((a, b) => a + b.saldo, 0);
-  const nome = (id: string) => profiles.data?.find((p) => p.id === id)?.nome ?? "—";
-
-  const kpis = [
-    { l: "Colaboradores ativos", v: ativos.length, i: Users },
-    { l: "Marcações hoje", v: ms.filter((m) => m.data_local === hoje).length, i: Clock3 },
-    { l: "Solicitações pendentes", v: pendentes, i: Hourglass },
-    { l: "Saldo consolidado", v: formatarMinutos(consolidado), i: CalendarClock },
-    { l: "Jornadas completas", v: `${completas}/${dias.length}`, i: CheckCircle2 },
-  ];
-
-  return (
-    <>
-      <PageHeading eyebrow="Visão gerencial" title="Dashboard" desc="Indicadores de jornada e banco de horas da equipe.">
-        <div className="grid gap-1">
-          <label htmlFor="periodo" className="text-xs font-semibold text-muted-foreground">Período</label>
-          <Select value={periodo} onValueChange={setPeriodo}>
-            <SelectTrigger id="periodo" className="h-11 w-44 bg-card"><SelectValue /></SelectTrigger>
-            <SelectContent><SelectItem value="7">Últimos 7 dias</SelectItem><SelectItem value="30">Últimos 30 dias</SelectItem><SelectItem value="90">Últimos 90 dias</SelectItem><SelectItem value="365">Últimos 12 meses</SelectItem></SelectContent>
-          </Select>
-        </div>
-      </PageHeading>
-      {marc.isPending && <p role="status" className="mb-4">Carregando indicadores…</p>}
-      {(marc.isError || regras.isError || profiles.isError) && <p role="alert" className="mb-4 text-destructive">Não foi possível carregar os indicadores.</p>}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
-        {kpis.map(({ l, v, i: I }) => (
-          <div key={l} className="rounded-xl border bg-card p-5 shadow-card">
-            <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground">{l}<I className="size-4 text-primary" /></div>
-            <div className="tabular mt-2 text-2xl font-extrabold">{v}</div>
-          </div>
-        ))}
-      </div>
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-        <Panel title="Banco de horas por colaborador">
-          {porColab.length ? <div className="overflow-x-auto"><table className="w-full text-sm">
-            <thead><tr className="border-b text-left text-xs text-muted-foreground"><th className="py-2">Colaborador</th><th className="py-2">Cargo</th><th className="py-2 text-right">Saldo</th></tr></thead>
-            <tbody className="divide-y">{porColab.map(({ p, saldo }) => (
-              <tr key={p.id}><td className="py-2.5 font-medium">{p.nome}</td><td className="py-2.5 text-muted-foreground">{p.cargo ?? "—"}</td>
-                <td className={`tabular py-2.5 text-right font-bold ${saldo < 0 ? "text-destructive" : "text-primary"}`}>{formatarMinutos(saldo)}</td></tr>
-            ))}</tbody></table></div> : <p className="text-sm text-muted-foreground">Sem colaboradores.</p>}
-        </Panel>
-        <Panel title="Alertas">
-          <ul className="grid gap-3 text-sm">
-            {acimaLimite.slice(0, 6).map((d) => (
-              <li key={(d[0]?.user_id ?? "") + (d[0]?.data_local ?? "")} className="flex items-start gap-3 rounded-lg bg-danger-soft p-3 text-danger-soft-foreground">
-                <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-                <span><b>{nome((d[0]?.user_id ?? ""))}</b> trabalhou {formatarMinutos(minutosTrabalhados(d), false)} em {formatarData((d[0]?.data_local ?? ""))} (limite {r && formatarMinutos(r.limite_diario_min, false)}).</span>
-              </li>
-            ))}
-            {proxVenc > 0 && <li className="flex items-start gap-3 rounded-lg bg-warning p-3 text-warning-foreground"><Hourglass className="mt-0.5 size-4 shrink-0" />{proxVenc} colaborador(es) com horas próximas do vencimento (15 dias).</li>}
-            {foraArea > 0 && <li className="rounded-lg bg-warning p-3 text-warning-foreground"><b>{foraArea}</b> marcações fora da área.</li>}
-            {divergentes > 0 && <li className="rounded-lg bg-warning p-3 text-warning-foreground"><b>{divergentes}</b> marcações com relógio divergente.</li>}
-            {!acimaLimite.length && !proxVenc && !foraArea && !divergentes && <li className="flex items-center gap-2 text-muted-foreground"><Badge variant="success">OK</Badge>Nenhum alerta no período.</li>}
-          </ul>
-        </Panel>
-      </div>
-    </>
-  );
+import {createFileRoute,Link} from '@tanstack/react-router';
+import {ArrowDown,ArrowUp,ArrowRight} from 'lucide-react';
+import {Bar,BarChart,Line,LineChart,XAxis,YAxis,CartesianGrid} from 'recharts';
+import {Button} from '@/components/ui/button';
+import {ChartContainer,ChartTooltip,ChartTooltipContent} from '@/components/ui/chart';
+import {PageHeading} from '@/components/ponto/PageHeading';
+import {FiltrosGestao} from '@/components/ponto/FiltrosGestao';
+import {filtrosGestao,useFiltrosGestao} from '@/lib/gestao-filtros';
+import {useProfiles,useTodasMarcacoes,useTodasSolicitacoes,useVinculosGestao} from '@/lib/gestor-queries';
+import {useRegras,useNow} from '@/lib/queries';
+import {agruparPorDia,dataLocalHoje,deslocarData,estadoAgora,formatarMinutos,indicadoresGestao,inicioSemana,periodoAnterior,saldoDia,slaSolicitacoes} from '@/lib/ponto';
+import {pageHead} from '@/lib/metadata';
+export const Route=createFileRoute('/_authenticated/gestor/dashboard')({validateSearch:filtrosGestao,head:()=>pageHead('Dashboard','Presença, tendências e indicadores de jornada por período e equipe.'),component:Dashboard});
+function Dashboard(){
+ const {value:f,onChange}=useFiltrosGestao('/gestor/dashboard');const ant=periodoAnterior(f.de,f.ate);const profiles=useProfiles();const marc=useTodasMarcacoes(ant.de,f.ate);const hoje=dataLocalHoje();const atual=useTodasMarcacoes(hoje,hoje);const sol=useTodasSolicitacoes(f.de,f.ate);const vinculos=useVinculosGestao();const regras=useRegras();const agora=useNow();
+ const pessoas=(profiles.data??[]).filter(p=>(f.equipe==='todos'||(f.equipe==='sem'?!p.equipe_id:p.equipe_id===f.equipe))&&(f.local==='todos'||vinculos.data?.some(v=>v.user_id===p.id&&v.local_id===f.local)||marc.data?.some(m=>m.user_id===p.id&&m.local_id===f.local)));
+ const ids=new Set(pessoas.map(p=>p.id));const scoped=(marc.data??[]).filter(m=>ids.has(m.user_id)&&(f.local==='todos'||m.local_id===f.local));const ms=scoped.filter(m=>m.data_local>=f.de&&m.data_local<=f.ate);const prev=scoped.filter(m=>m.data_local>=ant.de&&m.data_local<=ant.ate);const ss=(sol.data??[]).filter(s=>ids.has(s.user_id));
+ const r=regras.data;const a=r?indicadoresGestao(ms,r):null;const b=r?indicadoresGestao(prev,r):null;const sla=agora?slaSolicitacoes(ss,agora):null;
+ const porPessoa=pessoas.map(p=>({nome:p.nome,id:p.id,extras:r?indicadoresGestao(ms.filter(m=>m.user_id===p.id),r).extras:0,saldo:r?indicadoresGestao(ms.filter(m=>m.user_id===p.id),r).saldo:0,estado:estadoAgora((atual.data??[]).filter(m=>m.user_id===p.id&&(f.local==='todos'||m.local_id===f.local)))}));
+ const tendencias=Object.entries(ms.reduce<Record<string,typeof ms>>((acc,m)=>{const k=inicioSemana(m.data_local);(acc[k]??=[]).push(m);return acc;},{})).sort(([a],[b])=>a.localeCompare(b)).map(([semana,rows])=>({semana:semana.slice(5),horas:r?indicadoresGestao(rows,r).horas/60:0}));
+ const entradas=ms.filter(m=>m.tipo==='entrada');const heat=Array.from({length:7},(_,dia)=>({nome:['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'][dia],bins:Array.from({length:6},(_,bin)=>entradas.filter(m=>((new Date(`${m.data_local}T12:00:00`).getDay()+6)%7)===dia&&Math.floor(Number(m.hora_local.slice(0,2))/4)===bin).length)}));
+ const loading=profiles.isPending||marc.isPending||sol.isPending||regras.isPending||vinculos.isPending||atual.isPending;const error=profiles.isError||marc.isError||sol.isError||regras.isError||vinculos.isError||atual.isError;
+ const kpis=[{label:'Horas trabalhadas',value:a?.horas??0,previous:b?.horas??0,tempo:true,key:'todos'},{label:'Horas extras',value:a?.extras??0,previous:b?.extras??0,tempo:true,key:'extras'},{label:'Saldo do período',value:a?.saldo??0,previous:b?.saldo??0,tempo:true,key:'todos'},{label:'Jornadas completas',value:a?.completas??0,previous:b?.completas??0,key:'completas'},{label:'Dias incompletos',value:a?.incompletas??0,previous:b?.incompletas??0,key:'incompletas'},{label:'Acima do limite diário',value:a?.acima??0,previous:b?.acima??0,key:'limite'}];
+ return <div className="grid min-w-0 gap-6"><PageHeading title="Dashboard"/><FiltrosGestao value={f} onChange={onChange}/>{loading?<p role="status">Carregando indicadores…</p>:error?<p role="alert">Não foi possível carregar os indicadores. <Button variant="outline" className="min-h-11" onClick={()=>{void profiles.refetch();void marc.refetch();void sol.refetch();void regras.refetch();void vinculos.refetch();void atual.refetch();}}>Tentar de novo</Button></p>:<>
+ <section><div className="mb-4 flex flex-wrap items-center justify-between gap-2"><h2 className="text-lg font-bold">Agora</h2><span className="text-sm text-muted-foreground">{pessoas.filter(p=>p.ativo).length} colaboradores ativos · {hoje.split('-').reverse().join('/')}</span></div><div className="grid gap-4 sm:grid-cols-3">{['Trabalhando','Em intervalo','Sem entrada'].map(estado=><div key={estado} className="rounded-lg border bg-card p-4"><h3 className="text-sm text-muted-foreground">{estado}</h3><p className="tabular my-2 text-2xl font-bold">{porPessoa.filter(p=>p.estado===estado&&pessoas.find(x=>x.id===p.id)?.ativo).length}</p><ul className="grid gap-1 text-sm">{porPessoa.filter(p=>p.estado===estado&&pessoas.find(x=>x.id===p.id)?.ativo).map(p=><li key={p.id}><Link to="/gestor/operacao" search={{...f,de:hoje,ate:hoje,colab:p.id,status:'todos',indicador:'todos'}} className="underline decoration-border underline-offset-4">{p.nome}</Link></li>)}</ul></div>)}</div><p className="mt-3 text-sm text-muted-foreground">Atrasos, presença esperada e ausências justificadas: aguardando escalas e ausências.</p></section>
+ <section><h2 className="mb-4 text-lg font-bold">Período</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{kpis.map(k=><Button asChild variant="outline" key={k.label} className="h-auto min-w-0 whitespace-normal justify-start p-4"><Link to="/gestor/operacao" search={{...f,status:'todos',indicador:k.key}}><div className="w-full text-left"><h3 className="text-xs text-muted-foreground">{k.label}</h3><p className="tabular my-2 text-2xl font-bold">{k.tempo?formatarMinutos(k.value,k.key==='todos'&&k.label==='Saldo do período'):k.value}</p><p className="flex items-center gap-1 text-xs text-muted-foreground">{k.value>=k.previous?<ArrowUp className="size-3"/>:<ArrowDown className="size-3"/>}{k.tempo?formatarMinutos(k.value-k.previous):`${k.value-k.previous>=0?'+':''}${k.value-k.previous}`} no período anterior<ArrowRight className="ml-auto size-4"/></p></div></Link></Button>)}</div></section>
+ <section className="grid gap-4 border-y py-5 sm:grid-cols-3"><Button asChild variant="outline" className="h-auto whitespace-normal p-4"><Link to="/gestor/operacao" search={{...f,status:'pendente',indicador:'todos'}}>{ss.filter(s=>s.status==='pendente').length} ajustes pendentes<ArrowRight className="size-4"/></Link></Button><Button asChild variant="outline" className="h-auto whitespace-normal p-4"><Link to="/gestor/operacao" search={{...f,status:'pendente',indicador:'sla'}}>{sla?.antigas.length??0} pendências acima de 48 h<ArrowRight className="size-4"/></Link></Button><div className="p-4"><h3 className="text-xs text-muted-foreground">Tempo mediano de decisão</h3><p className="font-bold">{sla?.mediana===null||!sla?'—':`${sla.mediana.toFixed(1)} h`}</p></div></section>
+ <div className="grid gap-6 lg:grid-cols-2"><section className="min-w-0"><h2 className="mb-4 font-bold">Tendência semanal · horas</h2>{tendencias.length?<ChartContainer className="h-60 w-full aspect-auto" config={{horas:{label:'Horas',color:'var(--primary)'}}}><LineChart data={tendencias}><CartesianGrid vertical={false}/><XAxis dataKey="semana"/><YAxis width={36}/><ChartTooltip content={<ChartTooltipContent/>}/><Line dataKey="horas" stroke="var(--primary)" isAnimationActive={false}/></LineChart></ChartContainer>:<p className="text-muted-foreground">Sem marcações no período.</p>}</section><section className="min-w-0"><h2 className="mb-4 font-bold">Horas extras por colaborador · horas</h2>{porPessoa.some(p=>p.extras>0)?<ChartContainer className="h-60 w-full aspect-auto" config={{horas:{label:'Horas extras',color:'var(--chart-3)'}}}><BarChart data={porPessoa.filter(p=>p.extras>0).sort((a,b)=>b.extras-a.extras).slice(0,5).map(p=>({...p,horas:p.extras/60}))}><XAxis dataKey="nome" tickFormatter={v=>String(v).split(' ')[0]??''}/><YAxis width={36}/><ChartTooltip content={<ChartTooltipContent/>}/><Bar dataKey="horas" fill="var(--chart-3)" isAnimationActive={false}/></BarChart></ChartContainer>:<p className="text-muted-foreground">Sem horas extras registradas.</p>}</section></div>
+ <section className="border-t pt-5"><h2 className="mb-4 font-bold">Entradas por horário e dia da semana</h2><div className="overflow-x-auto"><table className="w-full min-w-[420px] text-sm"><caption className="sr-only">Quantidade de entradas por faixa de horário local</caption><thead><tr><th scope="col" className="text-left">Dia</th>{['00–04','04–08','08–12','12–16','16–20','20–24'].map(h=><th key={h} scope="col" className="p-2">{h}</th>)}</tr></thead><tbody>{heat.map(d=><tr key={d.nome}><th scope="row" className="text-left">{d.nome}</th>{d.bins.map((n,i)=><td key={i} className={`border p-2 text-center tabular ${n>0?'bg-success text-success-foreground':'bg-muted text-muted-foreground'}`}>{n}</td>)}</tr>)}</tbody></table></div></section>
+ <section className="border-t pt-5"><h2 className="mb-4 font-bold">Saldos e horas extras do período</h2><ul className="divide-y">{porPessoa.map(p=><li key={p.id} className="flex flex-wrap justify-between gap-2 py-3"><Link to="/gestor/operacao" search={{...f,colab:p.id,status:'todos',indicador:'todos'}} className="font-medium underline underline-offset-4">{p.nome}</Link><span className="tabular">Saldo {formatarMinutos(p.saldo)} · Extras {formatarMinutos(p.extras,false)}</span></li>)}</ul><p className="mt-3 text-sm text-muted-foreground">Vencimentos de horas aguardam os lotes do banco de horas.</p></section>
+ </>}</div>;
 }
