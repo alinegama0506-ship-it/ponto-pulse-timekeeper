@@ -36,6 +36,13 @@
       "when": 1794489979910,
       "tag": "0004_scope_rules_and_work_locations_reads",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794850695687,
+      "tag": "0005_gestao_equipes_convites_lotes",
+      "breakpoints": true
     }
   ]
 }
