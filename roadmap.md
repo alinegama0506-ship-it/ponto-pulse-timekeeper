@@ -20,3 +20,12 @@
 - [x] Resumo semanal no Hoje, idiomas e leitura por período sem truncar o banco.
 - [x] 29 testes passando; conferência autenticada em 380px e desktop com sete dias, semana anterior, ajuste preenchido e resumo do Hoje. Nenhum registro fictício inserido.
 - [ ] Pontualidade, feriados/faltas confirmadas e vencimentos FIFO: dependem das escalas e dos lotes previstos na Fase 5; exibidos sem valores inventados.
+
+# Fase 4 — Gestão por período
+- [ ] Filtros compartilhados de período/equipe/local e navegação dos indicadores para a operação.
+- [ ] Dashboard Agora/Período, comparação, tendências, extras e entradas por dia/horário.
+- [ ] Aprovação/rejeição em lote, mediana de decisão e pendências acima de 48 horas.
+- [ ] Equipes, ativação/desativação e convites por link; bloquear cadastro sem convite.
+- [ ] Exportação CSV segura e XLSX por período/equipe; consultas paginadas.
+- [ ] Testes e conferência autenticada em 380px e desktop.
+- [ ] Escalas, atrasos/ausências e vencimentos reais: dependem do motor da Fase 5.
