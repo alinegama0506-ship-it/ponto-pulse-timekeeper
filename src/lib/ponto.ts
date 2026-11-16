@@ -186,3 +186,24 @@ export function resumoSemana(inicio: string, marcacoes: MarcacaoSemana[], solici
   const meta = regras.jornada_diaria_min * 5;
   return { dias, trabalhado, meta, saldo: dias.reduce((s, d) => s + d.saldo, 0), aderencia: meta > 0 ? trabalhado / meta : 0 };
 }
+
+export function periodoAnterior(de: string, ate: string) {
+  const dias = Math.round((Date.parse(`${ate}T12:00:00Z`) - Date.parse(`${de}T12:00:00Z`)) / 86400000) + 1;
+  return { de: deslocarData(de, -dias), ate: deslocarData(de, -1) };
+}
+export function estadoAgora(dia: MarcacaoLite[]) {
+  if (dia.some(m => m.tipo === 'saida')) return 'Encerrado';
+  if (dia.some(m => m.tipo === 'retorno_intervalo')) return 'Trabalhando';
+  if (dia.some(m => m.tipo === 'saida_intervalo')) return 'Em intervalo';
+  return dia.some(m => m.tipo === 'entrada') ? 'Trabalhando' : 'Sem entrada';
+}
+export function slaSolicitacoes(rows: {status: string; created_at: string; decidido_em: string | null}[], agora: Date) {
+  const tempos = rows.filter(s => s.status !== 'pendente' && s.decidido_em).map(s => Math.max(0, (Date.parse(s.decidido_em ?? '') - Date.parse(s.created_at)) / 3600000)).sort((a,b) => a-b);
+  const meio = Math.floor(tempos.length / 2);
+  const mediana = tempos.length ? tempos.length % 2 ? tempos[meio] ?? 0 : ((tempos[meio-1] ?? 0)+(tempos[meio] ?? 0))/2 : null;
+  return {mediana, antigas: rows.filter(s => s.status === 'pendente' && agora.getTime()-Date.parse(s.created_at)>48*3600000)};
+}
+export function indicadoresGestao(marcacoes: MarcacaoLite[], regras: Regras) {
+  const dias = [...agruparPorDia(marcacoes).values()];
+  return { horas: dias.reduce((a,d) => a+minutosTrabalhados(d),0), completas: dias.filter(jornadaCompleta).length, incompletas: dias.filter(d=>!jornadaCompleta(d)).length, extras: dias.reduce((a,d)=>a+Math.max(0,saldoDia(d,regras)),0), saldo: saldoBanco(marcacoes,regras), acima: dias.filter(d=>minutosTrabalhados(d)>regras.limite_diario_min).length };
+}

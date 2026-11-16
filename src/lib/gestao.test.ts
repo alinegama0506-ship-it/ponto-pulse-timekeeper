@@ -1,0 +1,10 @@
+import {describe,it,expect} from 'vitest';
+import {estadoAgora,periodoAnterior,slaSolicitacoes,indicadoresGestao,type MarcacaoLite} from './ponto';
+const m=(tipo:MarcacaoLite['tipo'],hora:string):MarcacaoLite=>({tipo,user_id:'a',data_local:'2026-11-10',momento_dispositivo:`2026-11-10T${hora}:00Z`});
+describe('gestão',()=>{
+ it('compara intervalo anterior com igual quantidade de dias',()=>expect(periodoAnterior('2026-11-09','2026-11-15')).toEqual({de:'2026-11-02',ate:'2026-11-08'}));
+ it('classifica trabalhando e intervalo apenas por marcações',()=>{expect(estadoAgora([m('entrada','08:00')])).toBe('Trabalhando');expect(estadoAgora([m('entrada','08:00'),m('saida_intervalo','12:00')])).toBe('Em intervalo');expect(estadoAgora([])).toBe('Sem entrada');});
+ it('destaca somente pendências com mais de 48 horas',()=>{const agora=new Date('2026-11-13T12:00:00Z');expect(slaSolicitacoes([{status:'pendente',created_at:'2026-11-11T12:00:00Z',decidido_em:null},{status:'pendente',created_at:'2026-11-11T11:59:00Z',decidido_em:null}],agora).antigas).toHaveLength(1);});
+ it('calcula tempo mediano das decisões aprovadas e rejeitadas',()=>expect(slaSolicitacoes([{status:'aprovado',created_at:'2026-11-10T08:00:00Z',decidido_em:'2026-11-10T10:00:00Z'},{status:'rejeitado',created_at:'2026-11-10T08:00:00Z',decidido_em:'2026-11-10T14:00:00Z'}],new Date()).mediana).toBe(4));
+ it('extras e saldo consideram jornadas registradas, não solicitações',()=>{expect(indicadoresGestao([m('entrada','08:00'),m('saida_intervalo','12:00'),m('retorno_intervalo','13:00'),m('saida','18:00')],{jornada_diaria_min:480,tolerancia_min:10,limite_diario_min:600,validade_banco_dias:180})).toMatchObject({horas:540,extras:60,saldo:60,completas:1,acima:0});});
+});

@@ -44,6 +44,72 @@ export type Database = {
           },
         ]
       }
+      convites: {
+        Row: {
+          cancelado_em: string | null
+          criado_em: string
+          criado_por: string
+          email: string
+          equipe_id: string | null
+          expira_em: string
+          id: string
+          token_hash: string
+          usado_em: string | null
+        }
+        Insert: {
+          cancelado_em?: string | null
+          criado_em?: string
+          criado_por: string
+          email: string
+          equipe_id?: string | null
+          expira_em?: string
+          id?: string
+          token_hash: string
+          usado_em?: string | null
+        }
+        Update: {
+          cancelado_em?: string | null
+          criado_em?: string
+          criado_por?: string
+          email?: string
+          equipe_id?: string | null
+          expira_em?: string
+          id?: string
+          token_hash?: string
+          usado_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "convites_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "convites_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "equipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipes: {
+        Row: {
+          id: string
+          nome: string
+        }
+        Insert: {
+          id?: string
+          nome: string
+        }
+        Update: {
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
       locais_trabalho: {
         Row: {
           ativo: boolean
@@ -168,6 +234,7 @@ export type Database = {
           cargo: string | null
           created_at: string
           email: string | null
+          equipe_id: string | null
           geo_aviso_visto_em: string | null
           id: string
           idioma: string
@@ -181,6 +248,7 @@ export type Database = {
           cargo?: string | null
           created_at?: string
           email?: string | null
+          equipe_id?: string | null
           geo_aviso_visto_em?: string | null
           id: string
           idioma?: string
@@ -194,6 +262,7 @@ export type Database = {
           cargo?: string | null
           created_at?: string
           email?: string | null
+          equipe_id?: string | null
           geo_aviso_visto_em?: string | null
           id?: string
           idioma?: string
@@ -201,7 +270,15 @@ export type Database = {
           nome?: string
           notificacoes?: Json
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "equipes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       regras: {
         Row: {
@@ -332,9 +409,18 @@ export type Database = {
         }
         Returns: Json
       }
+      cancelar_convite: { Args: { _id: string }; Returns: undefined }
+      criar_convite: {
+        Args: { _email: string; _equipe_id?: string }
+        Returns: string
+      }
       decidir_solicitacao: {
         Args: { _aprovar: boolean; _id: string; _justificativa?: string }
         Returns: undefined
+      }
+      decidir_solicitacoes_lote: {
+        Args: { _aprovar: boolean; _ids: string[]; _justificativa?: string }
+        Returns: number
       }
       definir_gestor: {
         Args: { _gestor: boolean; _user_id: string }
