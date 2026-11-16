@@ -1,44 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-
-export const statusVariant = { pendente: "warning", aprovado: "success", rejeitado: "danger" } as const;
-
-export function useProfiles() {
-  return useQuery({
-    queryKey: ["profiles"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("*").order("nome");
-      if (error) throw error;
-      return data;
-    },
-  });
-}
-
-export function useTodasMarcacoes(desde: string) {
-  return useQuery({
-    queryKey: ["marcacoes", "todas", desde],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("marcacoes").select("*").gte("data_local", desde).order("momento_dispositivo", { ascending: false }).limit(1000);
-      if (error) throw error;
-      return data;
-    },
-  });
-}
-
-export function useTodasSolicitacoes() {
-  return useQuery({
-    queryKey: ["solicitacoes", "todas"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("solicitacoes").select("*").order("created_at", { ascending: false }).limit(500);
-      if (error) throw error;
-      return data;
-    },
-  });
-}
-
-export function diasAtras(n: number) {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  const p = (x: number) => String(x).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-}
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import type { Tables } from '@/integrations/supabase/types';
+import {dataLocalHoje,deslocarData} from './ponto';
+export const statusVariant = { pendente: 'warning', aprovado: 'success', rejeitado: 'danger' } as const;
+export function useProfiles(){return useQuery({queryKey:['profiles'],queryFn:async()=>{const rows:Tables<'profiles'>[]=[];for(let i=0;;i+=500){const {data,error}=await supabase.from('profiles').select('*').order('nome').order('id').range(i,i+499);if(error)throw error;rows.push(...data);if(data.length<500)return rows;}}});}
+export function useEquipes(){return useQuery({queryKey:['equipes'],queryFn:async()=>{const {data,error}=await supabase.from('equipes').select('*').order('nome');if(error)throw error;return data;}});}
+export function useVinculosGestao(){return useQuery({queryKey:['vinculos','gestao'],queryFn:async()=>{const rows:Tables<'colaborador_locais'>[]=[];for(let i=0;;i+=500){const {data,error}=await supabase.from('colaborador_locais').select('*').order('user_id').order('local_id').range(i,i+499);if(error)throw error;rows.push(...data);if(data.length<500)return rows;}}});}
+export function useTodasMarcacoes(desde:string,ate=dataLocalHoje()){return useQuery({queryKey:['marcacoes','todas',desde,ate],queryFn:async()=>{const rows:Tables<'marcacoes'>[]=[];for(let i=0;;i+=500){const {data,error}=await supabase.from('marcacoes').select('*').gte('data_local',desde).lte('data_local',ate).order('data_local',{ascending:false}).order('id').range(i,i+499);if(error)throw error;rows.push(...data);if(data.length<500)return rows;}}});}
+export function useTodasSolicitacoes(desde?:string,ate?:string){return useQuery({queryKey:['solicitacoes','todas',desde,ate],queryFn:async()=>{const rows:Tables<'solicitacoes'>[]=[];for(let i=0;;i+=500){let q=supabase.from('solicitacoes').select('*');if(desde)q=q.gte('data_solicitada',desde);if(ate)q=q.lte('data_solicitada',ate);const {data,error}=await q.order('created_at',{ascending:false}).order('id').range(i,i+499);if(error)throw error;rows.push(...data);if(data.length<500)return rows;}}});}
+export function useConvites(){return useQuery({queryKey:['convites'],queryFn:async()=>{const {data,error}=await supabase.from('convites').select('id,email,equipe_id,criado_em,expira_em,usado_em,cancelado_em').order('criado_em',{ascending:false});if(error)throw error;return data;}});}
+export function diasAtras(n:number){return deslocarData(dataLocalHoje(),-n);}
