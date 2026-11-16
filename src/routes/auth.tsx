@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>) => ({convite: typeof search['convite'] === 'string' ? search['convite'] : ''}),
   head: () => ({
     meta: [
       { title: "Entrar — Ponto Inteligente" }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
@@ -21,7 +22,9 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const nav = useNavigate();
-  const [modo, setModo] = useState<"entrar" | "cadastrar">("entrar");
+  const {convite}=Route.useSearch();
+  const [modo, setModo] = useState<"entrar" | "cadastrar">(convite ? "cadastrar" : "entrar");
+  const [codigo,setCodigo]=useState(convite);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -38,7 +41,7 @@ function AuthPage() {
       } else {
         const { data, error } = await supabase.auth.signUp({
           email, password: senha,
-          options: { emailRedirectTo: window.location.origin + "/inicio", data: { nome } },
+          options: { emailRedirectTo: window.location.origin + "/auth", data: { nome, convite: codigo } },
         });
         if (error) throw error;
         if (data.session) nav({ to: "/inicio", replace: true });
@@ -53,6 +56,7 @@ function AuthPage() {
         invalid_credentials: "E-mail ou senha incorretos.",
         email_not_confirmed: "Confirme seu e-mail pelo link enviado antes de entrar.",
         over_email_send_rate_limit: "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
+        unexpected_failure: "Não foi possível criar a conta. Confira se o convite está válido e se o e-mail é o mesmo informado pelo Gestor/RH.",
       };
       toast.error(traduz[code] ?? (msg.includes("not allowed") ? "Este endereço de e-mail não é aceito. Use um e-mail real." : msg || "Não foi possível continuar"), { duration: 8000 });
     } finally {
@@ -70,8 +74,9 @@ function AuthPage() {
         <h1 className="text-xl font-bold">{modo === "entrar" ? "Entrar" : "Criar conta"}</h1>
         <form onSubmit={submit} className="mt-5 grid gap-4">
           {modo === "cadastrar" && (
-            <div className="grid gap-1.5"><Label htmlFor="nome">Nome completo</Label>
-              <Input id="nome" required className="h-11" value={nome} onChange={(e) => setNome(e.target.value)} /></div>
+            <><div className="grid gap-1.5"><Label htmlFor="nome">Nome completo</Label>
+              <Input id="nome" required maxLength={200} className="h-11" value={nome} onChange={(e) => setNome(e.target.value)} /></div>
+              <div className="grid gap-1.5"><Label htmlFor="codigo">Código do convite</Label><Input id="codigo" required className="h-11" value={codigo} onChange={e=>setCodigo(e.target.value)} autoComplete="off"/></div></>
           )}
           <div className="grid gap-1.5"><Label htmlFor="email">E-mail</Label>
             <Input id="email" type="email" autoComplete="email" required className="h-11" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
@@ -79,10 +84,10 @@ function AuthPage() {
             <Input id="senha" type="password" minLength={6} required className="h-11" autoComplete={modo === "entrar" ? "current-password" : "new-password"} value={senha} onChange={(e) => setSenha(e.target.value)} /></div>
           <Button type="submit" className="h-11" disabled={loading}>{loading ? "Aguarde…" : modo === "entrar" ? "Entrar" : "Criar conta"}</Button>
         </form>
-        <button type="button" className="mt-4 min-h-11 w-full text-sm font-medium text-primary hover:underline"
+        <Button variant="ghost" type="button" className="mt-4 min-h-11 w-full text-sm font-medium text-primary"
           onClick={() => setModo(modo === "entrar" ? "cadastrar" : "entrar")}>
-          {modo === "entrar" ? "Não tem conta? Cadastre-se" : "Já tem conta? Entrar"}
-        </button>
+          {modo === "entrar" ? "Tenho um convite" : "Já tem conta? Entrar"}
+        </Button>
       </div>
     </main>
   );
