@@ -22,6 +22,9 @@
 - [ ] Pontualidade, feriados/faltas confirmadas e vencimentos FIFO: dependem das escalas e dos lotes previstos na Fase 5; exibidos sem valores inventados.
 
 # Fase 4 — Gestão por período
+- [x] Tela pública de recuperação, solicitação de e-mail, verificação de código e nova senha; link de recuperação padrão aceito como alternativa.
+- [ ] Personalizar e-mail de recuperação para exibir código: aguarda domínio de envio configurado pelo usuário; entrega e alteração real de senha não verificadas.
+- [x] Botão explícito de cadastro por convite; formulário conferido em 380px e desktop. Quatro testes relacionados passando e compilação sem erros.
 - [x] Entrada/cadastro por perfil; privilégios validados pelo papel ativo e convite autorizado, nunca pela seleção na tela.
 - [x] Folha mensal do colaborador selecionado, com download PDF; documento conferido com todos os 30 dias de novembro e dados reais.
 - [x] Filtros compartilhados de período/equipe/local e navegação dos indicadores para a operação.

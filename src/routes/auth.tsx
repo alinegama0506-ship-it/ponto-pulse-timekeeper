@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Clock3 } from "lucide-react";
@@ -93,10 +93,12 @@ function AuthPage() {
             <Input id="senha" type="password" minLength={6} required className="h-11" autoComplete={modo === "entrar" ? "current-password" : "new-password"} value={senha} onChange={(e) => setSenha(e.target.value)} /></div>
           <Button type="submit" className="h-11" disabled={loading}>{loading ? "Aguarde…" : modo === "entrar" ? "Entrar" : "Criar conta"}</Button>
         </form>
+        {modo==='entrar'&&<Button asChild variant="ghost" className="mt-2 min-h-11 w-full"><Link to="/reset-password">Esqueci minha senha</Link></Button>}
         <Button variant="ghost" type="button" className="mt-4 min-h-11 w-full text-sm font-medium text-primary"
           onClick={() => setModo(modo === "entrar" ? "cadastrar" : "entrar")}>
-          {modo === "entrar" ? "Tenho um convite" : "Já tem conta? Entrar"}
+          {modo === "entrar" ? "Não tenho conta · Cadastrar" : "Já tenho conta · Entrar"}
         </Button>
+        {modo==='cadastrar'&&<p className="mt-3 text-sm text-muted-foreground">Use o convite enviado pelo Gestor/RH para criar sua conta.</p>}
       </div>
     </main>
   );

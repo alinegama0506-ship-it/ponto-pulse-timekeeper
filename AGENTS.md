@@ -44,3 +44,4 @@ use the editor.
 - Manager filters use optional validated URL search parameters and paginated interval reads so navigation preserves scope without truncation.
 - Batch decisions wrap decidir_solicitacao atomically; no independent approval path may bypass its ownership, role and audit checks.
 - Monthly PDF reports reuse ponto.ts and user-scoped paginated queries, preserving device local times and excluding pending requests from totals.
+- Password recovery uses Cloud Auth recovery OTP/link verification on a public reset page; never generate local codes or allow password updates before a verified recovery session.
