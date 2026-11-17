@@ -41,3 +41,8 @@ use the editor.
 - Personal exports scope every query to the authenticated user and paginate all records; CSV cells escape spreadsheet formulas.
 - Rules SELECT is restricted to the configured company row and application roles; work-location SELECT gives managers all locations and collaborators eligible active locations plus locations referenced by their own punches, preserving historical labels without exposing unrelated locations.
 - Weekly reporting reuses pure helpers in ponto.ts and owner-scoped paginated queries; use the provisional five-day target without inventing schedules, holidays, punctuality or FIFO expiry before the schedule engine exists.
+- Manager reporting uses shared URL filters and paginated interval reads; calculations reuse ponto.ts, and no schedule-derived absence, lateness or expiry may be inferred before the schedule engine exists.
+- Signup requires a one-time email-bound hashed invitation enforced by the signup trigger; new accounts receive only collaborator access, while existing manager roles remain unchanged.
+- Profile activity/team changes are database-guarded; inactive accounts lose role privileges and cannot punch or request adjustments, preventing self-reactivation and self-deactivation by managers.
+- Batch decisions are atomic and delegate every item to decidir_solicitacao, preserving self-approval protection and audit fields.
+- Time-sheet PDFs use owner-scoped paginated reads, preserve device-local times, and reuse ponto.ts totals; they are internal reports, not REP-P receipts or compliance exports.

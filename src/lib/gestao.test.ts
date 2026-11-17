@@ -1,7 +1,8 @@
 import {describe,it,expect} from 'vitest';
-import {estadoAgora,periodoAnterior,slaSolicitacoes,indicadoresGestao,type MarcacaoLite} from './ponto';
+import {estadoAgora,periodoAnterior,slaSolicitacoes,indicadoresGestao,diasFolha,type MarcacaoLite} from './ponto';
 const m=(tipo:MarcacaoLite['tipo'],hora:string):MarcacaoLite=>({tipo,user_id:'a',data_local:'2026-11-10',momento_dispositivo:`2026-11-10T${hora}:00Z`});
 describe('gestão',()=>{
+ it('folha inclui todos os dias do período sem inventar faltas',()=>{const dias=diasFolha('2026-11-09','2026-11-11',[{...m('entrada','08:00'),hora_local:'08:00:00'}],{jornada_diaria_min:480,tolerancia_min:10,limite_diario_min:600,validade_banco_dias:180});expect(dias).toHaveLength(3);expect(dias[1]?.horarios).toEqual(['08:00','—','—','—']);expect(dias[0]).toMatchObject({ocorrencia:'Sem marcações',trabalhado:0,saldo:0});});
  it('compara intervalo anterior com igual quantidade de dias',()=>expect(periodoAnterior('2026-11-09','2026-11-15')).toEqual({de:'2026-11-02',ate:'2026-11-08'}));
  it('classifica trabalhando e intervalo apenas por marcações',()=>{expect(estadoAgora([m('entrada','08:00')])).toBe('Trabalhando');expect(estadoAgora([m('entrada','08:00'),m('saida_intervalo','12:00')])).toBe('Em intervalo');expect(estadoAgora([])).toBe('Sem entrada');});
  it('destaca somente pendências com mais de 48 horas',()=>{const agora=new Date('2026-11-13T12:00:00Z');expect(slaSolicitacoes([{status:'pendente',created_at:'2026-11-11T12:00:00Z',decidido_em:null},{status:'pendente',created_at:'2026-11-11T11:59:00Z',decidido_em:null}],agora).antigas).toHaveLength(1);});

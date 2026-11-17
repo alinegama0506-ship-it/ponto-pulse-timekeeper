@@ -10,61 +10,61 @@ import { useMe } from "@/lib/queries";
 import { PageHeading, Panel } from "@/components/ponto/PageHeading";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { diasAtras, useProfiles, useTodasMarcacoes } from "@/lib/gestor-queries";
+import { useProfiles, useTodasMarcacoes, useEquipes, useVinculosGestao } from "@/lib/gestor-queries";
 import { useRegras } from "@/lib/queries";
+import {Input} from '@/components/ui/input';
+import {FiltrosGestao} from '@/components/ponto/FiltrosGestao';
+import {ConvitesGestao} from '@/components/ponto/ConvitesGestao';
+import {filtrosGestao,useFiltrosGestao} from '@/lib/gestao-filtros';
 import { TIPOS, TIPO_LABEL, agruparPorDia, formatarData, formatarHora, formatarMinutos, minutosTrabalhados, saldoBanco, saldoDia } from "@/lib/ponto";
 
 export const Route = createFileRoute("/_authenticated/gestor/equipe")({
+  validateSearch:filtrosGestao,
   head: () => ({ meta: [{ title: "Equipe — Ponto Inteligente" }, { property: "og:title", content: "Equipe — Ponto Inteligente" }, { property: "og:description", content: "Jornadas, faltas, atrasos e saldo por colaborador." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Jornadas, faltas, atrasos e saldo por colaborador." }] }),
   component: Equipe,
 });
 
-function diasUteis(desde: string) {
-  const out: string[] = [];
-  const d = new Date(desde + "T12:00:00");
-  const hoje = new Date();
-  while (d < hoje) {
-    if (d.getDay() !== 0 && d.getDay() !== 6) out.push(d.toISOString().slice(0, 10));
-    d.setDate(d.getDate() + 1);
-  }
-  return out;
-}
-
 function Equipe() {
   const profiles = useProfiles();
   const regras = useRegras();
-  const desde = diasAtras(30);
-  const marc = useTodasMarcacoes(desde);
+  const {value:f,onChange}=useFiltrosGestao('/gestor/equipe');
+  const marc = useTodasMarcacoes(f.de,f.ate);const vinculos=useVinculosGestao();
+  const pessoas=(profiles.data??[]).filter(p=>(f.equipe==='todos'||(f.equipe==='sem'?!p.equipe_id:p.equipe_id===f.equipe))&&(f.local==='todos'||vinculos.data?.some(v=>v.user_id===p.id&&v.local_id===f.local)||marc.data?.some(m=>m.user_id===p.id&&m.local_id===f.local)));
   const [sel, setSel] = useState<string>("");
-  const id = sel || profiles.data?.[0]?.id || "";
+  const id = (pessoas.some(p=>p.id===sel)?sel:pessoas[0]?.id) || "";
   const p = profiles.data?.find((x) => x.id === id);
-  const ms = (marc.data ?? []).filter((m) => m.user_id === id);
+  const ms = (marc.data ?? []).filter((m) => m.user_id === id&&(f.local==='todos'||m.local_id===f.local));
   const dias = [...agruparPorDia(ms).values()].sort((a, b) => (b[0]?.data_local ?? "").localeCompare(a[0]?.data_local ?? ""));
   const r = regras.data;
-  const comMarc = new Set(ms.map((m) => m.data_local));
-  const faltas = diasUteis(desde).filter((d) => !comMarc.has(d)).length;
   const atrasos = dias.filter((d) => saldoDia(d, r ?? { jornada_diaria_min: 0, tolerancia_min: 0, limite_diario_min: 0, validade_banco_dias: 0 }) < 0).length;
 
   return (
     <>
-      <PageHeading eyebrow="Pessoas" title="Equipe" desc="Consulta individual dos últimos 30 dias.">
+      <PageHeading eyebrow="Pessoas" title="Equipe" >
         <div className="grid gap-1"><Label htmlFor="colab">Colaborador</Label>
-          <Select value={id} onValueChange={setSel}><SelectTrigger id="colab" className="h-11 w-60 bg-card"><SelectValue placeholder="Selecione" /></SelectTrigger>
-            <SelectContent>{profiles.data?.map((x) => <SelectItem key={x.id} value={x.id}>{x.nome}</SelectItem>)}</SelectContent></Select></div>
+          <Select value={id} onValueChange={setSel}><SelectTrigger id="colab" className="h-11 w-full sm:w-60 bg-card"><SelectValue placeholder="Selecione" /></SelectTrigger>
+            <SelectContent>{pessoas.map((x) => <SelectItem key={x.id} value={x.id}>{x.nome}</SelectItem>)}</SelectContent></Select></div>
       </PageHeading>
-      <div className="mb-6"><AcessosPanel /></div>
+      <FiltrosGestao value={f} onChange={onChange}/>
+      <ConvitesGestao/>
+      <div className="my-6"><AcessosPanel pessoas={pessoas}/></div>
+      {(profiles.isPending||marc.isPending||regras.isPending)&&<p role="status">Carregando equipe…</p>}
+      {(profiles.isError||marc.isError||regras.isError)&&<p role="alert">Não foi possível carregar a equipe. <Button variant="outline" className="min-h-11" onClick={()=>{void profiles.refetch();void marc.refetch();void regras.refetch();}}>Tentar de novo</Button></p>}
+      {!pessoas.length&&!profiles.isPending&&<p>Sem colaboradores com esses filtros.</p>}
       {p && r && (
         <>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {[
               ["Dias trabalhados", dias.length],
-              ["Faltas (dias úteis)", faltas],
+              ["Faltas / atrasos", "—"],
               ["Dias abaixo da jornada", atrasos],
               ["Saldo", formatarMinutos(saldoBanco(ms, r))],
             ].map(([l, v]) => (
-              <div key={l} className="rounded-xl border bg-card p-5 shadow-card"><div className="text-xs font-semibold text-muted-foreground">{l}</div><div className="tabular mt-2 text-2xl font-extrabold">{v}</div></div>
+              <div key={l} className="rounded-lg border bg-card p-5 shadow-card"><div className="text-xs font-semibold text-muted-foreground">{l}</div><div className="tabular mt-2 text-2xl font-extrabold">{v}</div></div>
             ))}
           </div>
+          <p className="mt-3 text-sm text-muted-foreground">Faltas, atrasos e horas a vencer aguardam escalas e lotes do banco de horas.</p>
+          <section className="mt-4 border-y py-4"><h2 className="mb-2 font-bold">Tendência do saldo diário</h2><div className="flex flex-wrap gap-3">{dias.slice(0,7).reverse().map(d=><div key={d[0]?.data_local} className="text-xs"><p>{formatarData(d[0]?.data_local??'')}</p><p className="tabular font-bold">{formatarMinutos(saldoDia(d,r))}</p></div>)}</div></section>
           <div className="mt-6"><Panel title={`Jornadas — ${p.nome}`}>
             {dias.length ? <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
               <thead><tr className="border-b text-left text-xs text-muted-foreground"><th className="py-2">Data</th>{TIPOS.map((t) => <th key={t}>{TIPO_LABEL[t]}</th>)}<th>Trabalhado</th><th className="text-right">Saldo</th></tr></thead>
@@ -81,10 +81,12 @@ function Equipe() {
   );
 }
 
-function AcessosPanel() {
+function AcessosPanel({pessoas}:{pessoas:NonNullable<ReturnType<typeof useProfiles>['data']>}) {
   const qc = useQueryClient();
   const me = useMe();
-  const profiles = useProfiles();
+  const equipes=useEquipes();const [novaEquipe,setNovaEquipe]=useState('');
+  const criarEquipe=useMutation({mutationFn:async()=>{const {error}=await supabase.from('equipes').insert({nome:novaEquipe.trim()});if(error)throw error;},onSuccess:()=>{setNovaEquipe('');void qc.invalidateQueries({queryKey:['equipes']});},onError:(e:Error)=>toast.error(e.message)});
+  const atualizar=useMutation({mutationFn:async(v:{id:string;ativo?:boolean;equipe_id?:string|null})=>{const {id,...patch}=v;const {error}=await supabase.from('profiles').update(patch).eq('id',id);if(error)throw error;},onSuccess:()=>{void qc.invalidateQueries({queryKey:['profiles']});void qc.invalidateQueries({queryKey:['me']});toast.success('Colaborador atualizado.');},onError:(e:Error)=>toast.error(e.message)});
   const roles = useQuery({
     queryKey: ["roles", "todos"],
     queryFn: async () => {
@@ -105,15 +107,19 @@ function AcessosPanel() {
   return (
     <Panel title="Acessos">
       <p className="mb-3 text-sm text-muted-foreground">Colaboradores veem apenas o próprio ponto. Gestor/RH vê a equipe toda, aprova ajustes e altera regras.</p>
+      <form className="mb-4 flex flex-wrap items-end gap-2" onSubmit={e=>{e.preventDefault();criarEquipe.mutate();}}><div className="grid gap-1"><Label htmlFor="nova-equipe">Nova equipe</Label><Input id="nova-equipe" value={novaEquipe} onChange={e=>setNovaEquipe(e.target.value)} className="h-11" required maxLength={100}/></div><Button type="submit" className="min-h-11" disabled={criarEquipe.isPending}>Criar equipe</Button></form>
       <ul className="divide-y">
-        {profiles.data?.map((p) => {
+        {pessoas.map((p) => {
           const g = roles.data?.has(p.id) ?? false;
           const eu = p.id === me.data?.user.id;
           return (
             <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm">
-              <div><span className="font-medium">{p.nome}</span> <span className="text-muted-foreground">{p.email}</span></div>
+              <div className="min-w-0 break-words"><span className="font-medium">{p.nome}</span> <span className="text-muted-foreground">{p.email}</span></div>
               <div className="grid gap-1"><Label htmlFor={`modalidade-${p.id}`}>Modalidade</Label><Select value={p.modalidade} onValueChange={v => modalidade.mutate({ id: p.id, modalidade: v })} disabled={modalidade.isPending}><SelectTrigger id={`modalidade-${p.id}`} className="h-11 w-36"><SelectValue /></SelectTrigger><SelectContent>{Object.entries(MODALIDADES).map(([k,l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}</SelectContent></Select></div>
+              <div className="grid gap-1"><Label htmlFor={`equipe-${p.id}`}>Equipe</Label><Select value={p.equipe_id??'sem'} disabled={atualizar.isPending} onValueChange={v=>atualizar.mutate({id:p.id,equipe_id:v==='sem'?null:v})}><SelectTrigger id={`equipe-${p.id}`} className="h-11 w-40"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="sem">Sem equipe</SelectItem>{equipes.data?.map(e=><SelectItem key={e.id} value={e.id}>{e.nome}</SelectItem>)}</SelectContent></Select></div>
               <div className="flex flex-wrap items-center gap-2">
+                <Badge variant={p.ativo?'outline':'secondary'}>{p.ativo?'Ativo':'Inativo'}</Badge>
+                {!eu&&<Button variant="outline" className="min-h-11" disabled={atualizar.isPending} onClick={()=>{if(window.confirm(`${p.ativo?'Desativar':'Ativar'} ${p.nome}?`))atualizar.mutate({id:p.id,ativo:!p.ativo});}}>{p.ativo?'Desativar':'Ativar'}</Button>}
                 <Badge variant={g ? "success" : "secondary"}>{g ? "Gestor/RH" : "Colaborador"}</Badge>
                 {!eu && <Button size="sm" variant="outline" className="min-h-11" disabled={mut.isPending || !roles.data}
                   onClick={() => mut.mutate({ id: p.id, gestor: !g })}>{g ? "Tornar colaborador" : "Tornar Gestor/RH"}</Button>}

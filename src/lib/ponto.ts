@@ -197,7 +197,7 @@ export function estadoAgora(dia: MarcacaoLite[]) {
   if (dia.some(m => m.tipo === 'saida_intervalo')) return 'Em intervalo';
   return dia.some(m => m.tipo === 'entrada') ? 'Trabalhando' : 'Sem entrada';
 }
-export function slaSolicitacoes(rows: {status: string; created_at: string; decidido_em: string | null}[], agora: Date) {
+export function slaSolicitacoes<T extends {status: string; created_at: string; decidido_em: string | null}>(rows: T[], agora: Date) {
   const tempos = rows.filter(s => s.status !== 'pendente' && s.decidido_em).map(s => Math.max(0, (Date.parse(s.decidido_em ?? '') - Date.parse(s.created_at)) / 3600000)).sort((a,b) => a-b);
   const meio = Math.floor(tempos.length / 2);
   const mediana = tempos.length ? tempos.length % 2 ? tempos[meio] ?? 0 : ((tempos[meio-1] ?? 0)+(tempos[meio] ?? 0))/2 : null;
@@ -206,4 +206,13 @@ export function slaSolicitacoes(rows: {status: string; created_at: string; decid
 export function indicadoresGestao(marcacoes: MarcacaoLite[], regras: Regras) {
   const dias = [...agruparPorDia(marcacoes).values()];
   return { horas: dias.reduce((a,d) => a+minutosTrabalhados(d),0), completas: dias.filter(jornadaCompleta).length, incompletas: dias.filter(d=>!jornadaCompleta(d)).length, extras: dias.reduce((a,d)=>a+Math.max(0,saldoDia(d,regras)),0), saldo: saldoBanco(marcacoes,regras), acima: dias.filter(d=>minutosTrabalhados(d)>regras.limite_diario_min).length };
+}
+
+export function diasFolha(de:string,ate:string,marcacoes:MarcacaoSemana[],regras:Regras){
+ const dias=[];
+ for(let data=de;data<=ate;data=deslocarData(data,1)){
+  const marc=marcacoes.filter(m=>m.data_local===data);
+  dias.push({data,horarios:TIPOS.map(tipo=>marc.find(m=>m.tipo===tipo)?.hora_local?.slice(0,5)??'—'),trabalhado:minutosTrabalhados(marc),saldo:saldoDia(marc,regras),ocorrencia:marc.length?(jornadaCompleta(marc)?'Completo':'Incompleto'):'Sem marcações'});
+ }
+ return dias;
 }
