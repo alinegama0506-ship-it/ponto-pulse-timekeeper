@@ -6,10 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { z } from 'zod';
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: z.object({convite:z.string().optional().catch('')}),
+  validateSearch: (search: Record<string, unknown>) => ({convite: typeof search['convite'] === 'string' ? search['convite'] : ''}),
   head: () => ({
     meta: [
       { title: "Entrar — Ponto Inteligente" }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
@@ -25,7 +24,7 @@ function AuthPage() {
   const nav = useNavigate();
   const {convite}=Route.useSearch();
   const [modo, setModo] = useState<"entrar" | "cadastrar">(convite ? "cadastrar" : "entrar");
-  const [codigo,setCodigo]=useState(convite??'');
+  const [codigo,setCodigo]=useState(convite);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");

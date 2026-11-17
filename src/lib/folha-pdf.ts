@@ -1,9 +1,0 @@
-import {diasFolha,formatarData,formatarMinutos,type MarcacaoSemana,type Regras} from './ponto';
-export async function baixarFolha({nome,cargo,de,ate,marcacoes,regras}:{nome:string;cargo:string|null;de:string;ate:string;marcacoes:MarcacaoSemana[];regras:Regras}){
- const [{jsPDF},{default:autoTable}]=await Promise.all([import('jspdf'),import('jspdf-autotable')]);
- const doc=new jsPDF({orientation:'landscape'});const dias=diasFolha(de,ate,marcacoes,regras);
- doc.setFontSize(18);doc.text('Folha de ponto',14,18);doc.setFontSize(10);doc.text(`Colaborador: ${nome} | Cargo: ${cargo??'Não informado'}`,14,26);doc.text(`Período: ${formatarData(de)} a ${formatarData(ate)} | Emitido em: ${new Date().toLocaleString('pt-BR')}`,14,33);
- autoTable(doc,{startY:40,head:[['Data','Entrada','Saída intervalo','Retorno','Saída','Trabalhado','Saldo','Ocorrência']],body:dias.map(d=>[formatarData(d.data),...d.horarios,formatarMinutos(d.trabalhado,false),formatarMinutos(d.saldo),d.ocorrencia]),styles:{fontSize:9},theme:'grid',margin:{bottom:35}});
- doc.addPage();doc.setFontSize(14);doc.text('Resumo do período',14,18);doc.setFontSize(11);doc.text(`Horas trabalhadas: ${formatarMinutos(dias.reduce((a,d)=>a+d.trabalhado,0),false)}`,14,30);doc.text(`Saldo do período: ${formatarMinutos(dias.reduce((a,d)=>a+d.saldo,0))}`,14,38);doc.text('Ciência do colaborador: _______________________________________  Data: ____/____/________',14,60);doc.setFontSize(9);doc.text('Controle interno. Não constitui comprovante REP-P, AFD ou AEJ.',14,76);doc.text('Sem marcações não significa falta. Escalas, feriados e ausências não estão aplicados neste documento.',14,83);doc.text('Marcações seguem o horário local do dispositivo. Ajustes pendentes não entram nas horas ou no saldo.',14,90);
- doc.save(`folha-de-ponto-${de}-${ate}.pdf`);
-}
