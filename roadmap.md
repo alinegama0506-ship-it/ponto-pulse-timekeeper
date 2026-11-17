@@ -11,7 +11,7 @@
 - [x] Idiomas e acessibilidade persistidos, aplicados antes da tela autenticada.
 - [x] Regras ao vivo, referência legal pesquisável, privacidade, ajuda e versão.
 - [x] 20 testes passando; sessão do colaborador conferida em 380px e desktop, com download JSON, idioma após recarga, tema escuro e foco persistido. Preferências de teste restauradas.
-- [ ] Conferir menu com perfil Gestor/RH: a sessão disponível é de colaborador.
+- [x] Menu Gestor/RH conferido com sessão autorizada em desktop e 380px.
 - [ ] Completar política formal de privacidade: faltam controlador, contato, base legal, prazo de guarda e compartilhamentos da empresa.
 
 # Fase 3 — Visão semanal
@@ -22,12 +22,13 @@
 - [ ] Pontualidade, feriados/faltas confirmadas e vencimentos FIFO: dependem das escalas e dos lotes previstos na Fase 5; exibidos sem valores inventados.
 
 # Fase 4 — Gestão por período
-- [ ] Separar entrada/cadastro por perfil; colaborador apenas com dados próprios, gestor com acesso de gestão autorizado.
-- [ ] Folha mensal do colaborador selecionado, com download PDF.
-- [ ] Filtros compartilhados de período/equipe/local e navegação dos indicadores para a operação.
-- [ ] Dashboard Agora/Período, comparação, tendências, extras e entradas por dia/horário.
-- [ ] Aprovação/rejeição em lote, mediana de decisão e pendências acima de 48 horas.
-- [ ] Equipes, ativação/desativação e convites por link; bloquear cadastro sem convite.
-- [ ] Exportação CSV segura e XLSX por período/equipe; consultas paginadas.
-- [ ] Testes e conferência autenticada em 380px e desktop.
+- [x] Entrada/cadastro por perfil; privilégios validados pelo papel ativo e convite autorizado, nunca pela seleção na tela.
+- [x] Folha mensal do colaborador selecionado, com download PDF; documento conferido com todos os 30 dias de novembro e dados reais.
+- [x] Filtros compartilhados de período/equipe/local e navegação dos indicadores para a operação.
+- [x] Dashboard Agora/Período, comparação, tendências, extras e entradas por dia/horário; atualização a cada 30 segundos.
+- [x] Aprovação/rejeição em lote, mediana de decisão e pendências acima de 48 horas implementadas, mantendo aprovação exclusiva pelo procedimento existente.
+- [x] Equipes, ativação/desativação e convites por perfil/link; cadastro sem convite bloqueado no banco.
+- [x] CSV segura e XLSX paginados; downloads conferidos com quatro marcações existentes.
+- [x] 36 testes passando, compilação sem erros; dashboard, operação, seleção do colaborador e PDF conferidos com sessão Gestor/RH em desktop e 380px.
+- [ ] Cadastro por convite, alteração de acessos e decisões reais em lote: verificação destrutiva depende de contas/solicitações de teste autorizadas; criação de conta temporária não autorizada.
 - [ ] Escalas, atrasos/ausências e vencimentos reais: dependem do motor da Fase 5.

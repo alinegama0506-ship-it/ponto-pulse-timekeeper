@@ -11,10 +11,9 @@ export function useMe() {
       if (!u.user) throw new Error("Sessão expirada");
       const [{ data: profile }, { data: roles }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", u.user.id).maybeSingle(),
-        supabase.from("user_roles").select("role").eq("user_id", u.user.id),
+        supabase.rpc("has_role", {_user_id:u.user.id,_role:'gestor'}),
       ]);
-      const r = (roles ?? []).map((x) => x.role);
-      return { user: u.user, profile, isGestor: r.includes("gestor") };
+      return { user: u.user, profile, isGestor: roles===true };
     },
   });
 }

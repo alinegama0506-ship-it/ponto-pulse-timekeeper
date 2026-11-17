@@ -17,7 +17,7 @@ import { ConvitesGestao } from '@/components/ponto/ConvitesGestao';
 import { FiltrosGestao } from '@/components/ponto/FiltrosGestao';
 import { validarFiltrosGestao, useFiltrosGestao } from '@/lib/gestao-filtros';
 import { FolhaMensal } from '@/components/ponto/FolhaMensal';
-import { TIPOS, TIPO_LABEL, agruparPorDia, formatarData, formatarHora, formatarMinutos, minutosTrabalhados, saldoBanco, saldoDia } from "@/lib/ponto";
+import { TIPOS, TIPO_LABEL, agruparPorDia, formatarData, formatarMinutos, minutosTrabalhados, saldoBanco, saldoDia } from "@/lib/ponto";
 
 export const Route = createFileRoute("/_authenticated/gestor/equipe")({
   validateSearch: validarFiltrosGestao,
@@ -34,7 +34,7 @@ function Equipe() {
   const [sel, setSel] = useState<string>("");
   const id = pessoas.some(p=>p.id===(sel||f.colab))?(sel||f.colab):pessoas[0]?.id??"";
   const p = profiles.data?.find((x) => x.id === id);
-  const ms = (marc.data ?? []).filter((m) => m.user_id === id);
+  const ms = (marc.data ?? []).filter((m) => m.user_id === id&&(f.local==='todos'||m.local_id===f.local));
   const dias = [...agruparPorDia(ms).values()].sort((a, b) => (b[0]?.data_local ?? "").localeCompare(a[0]?.data_local ?? ""));
   const r = regras.data;
 

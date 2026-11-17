@@ -92,8 +92,8 @@ export function saldoDia(dia: MarcacaoLite[], regras: Regras): number {
   return Math.abs(diff) <= regras.tolerancia_min ? 0 : diff;
 }
 
-export function agruparPorDia(marcacoes: MarcacaoLite[]) {
-  const map = new Map<string, MarcacaoLite[]>();
+export function agruparPorDia<T extends MarcacaoLite>(marcacoes: T[]) {
+  const map = new Map<string, T[]>();
   for (const m of marcacoes) {
     const k = `${m.user_id}|${m.data_local}`;
     map.set(k, [...(map.get(k) ?? []), m]);

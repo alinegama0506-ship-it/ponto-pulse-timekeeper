@@ -33,7 +33,7 @@ use the editor.
 - Punch/balance rules live in `src/lib/ponto.ts` (pure, tested in `ponto.test.ts`); UI must reuse them so balance never counts pending requests.
 - Request approval/rejection only via the `decidir_solicitacao` SQL function (security definer: checks gestor role, blocks self-approval, writes audit fields); clients have no UPDATE on `solicitacoes`/`marcacoes`.
 - Punches store device local date/time + tz offset; `created_at` is the server audit timestamp — never overwrite one with the other.
-- Roles live in `user_roles` (`colaborador`, `gestor`); first signed-up user becomes gestor via the signup trigger.
+- Roles live in `user_roles`; signup derives privileges only from a locked, email-bound, unexpired invitation issued by an existing manager, never from the chosen UI area.
 - App punches must use `registrar_marcacao`; authenticated direct INSERT is revoked so geolocation policy cannot be bypassed. SQL recalculates geolocation and device/server clock divergence; approval remains exclusively in `decidir_solicitacao`.
 - Geolocation is requested only on explicit registration/retry actions, never watched; pure preview helpers live in `src/lib/geo.ts` with tests, while SQL is authoritative.
 - Authenticated routes share AppShell; manager routes only gate roles and render Outlet to avoid duplicate navigation and main landmarks.
@@ -41,3 +41,6 @@ use the editor.
 - Personal exports scope every query to the authenticated user and paginate all records; CSV cells escape spreadsheet formulas.
 - Rules SELECT is restricted to the configured company row and application roles; work-location SELECT gives managers all locations and collaborators eligible active locations plus locations referenced by their own punches, preserving historical labels without exposing unrelated locations.
 - Weekly reporting reuses pure helpers in ponto.ts and owner-scoped paginated queries; use the provisional five-day target without inventing schedules, holidays, punctuality or FIFO expiry before the schedule engine exists.
+- Manager filters use optional validated URL search parameters and paginated interval reads so navigation preserves scope without truncation.
+- Batch decisions wrap decidir_solicitacao atomically; no independent approval path may bypass its ownership, role and audit checks.
+- Monthly PDF reports reuse ponto.ts and user-scoped paginated queries, preserving device local times and excluding pending requests from totals.
