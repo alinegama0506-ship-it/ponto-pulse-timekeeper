@@ -43,6 +43,13 @@
       "when": 1794850695687,
       "tag": "0005_gestao_equipes_convites_lotes",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794934298447,
+      "tag": "0006_convites_por_perfil",
+      "breakpoints": true
     }
   ]
 }

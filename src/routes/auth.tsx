@@ -6,9 +6,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {z} from 'zod';
+import {zodValidator} from '@tanstack/zod-adapter';
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>) => ({convite: typeof search['convite'] === 'string' ? search['convite'] : ''}),
+  validateSearch: zodValidator(z.object({convite:z.string().optional(),perfil:z.enum(['colaborador','gestor']).optional()})),
   head: () => ({
     meta: [
       { title: "Entrar — Ponto Inteligente" }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
@@ -22,9 +24,10 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const nav = useNavigate();
-  const {convite}=Route.useSearch();
+  const {convite,perfil:inicial}=Route.useSearch();
+  const [perfil,setPerfil]=useState<'colaborador'|'gestor'>(inicial??'colaborador');
   const [modo, setModo] = useState<"entrar" | "cadastrar">(convite ? "cadastrar" : "entrar");
-  const [codigo,setCodigo]=useState(convite);
+  const [codigo,setCodigo]=useState(convite??'');
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -37,14 +40,19 @@ function AuthPage() {
       if (modo === "entrar") {
         const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
         if (error) throw error;
-        nav({ to: "/inicio", replace: true });
+        const {data:u}=await supabase.auth.getUser();
+        if(!u.user)throw new Error('Sessão expirada');
+        const {data:gestor,error:roleError}=await supabase.rpc('has_role',{_user_id:u.user.id,_role:'gestor'});
+        if(roleError)throw roleError;
+        if(perfil==='gestor'&&!gestor){await supabase.auth.signOut();throw new Error('Esta conta não tem acesso de Gestor/RH. Entre na área do Colaborador.');}
+        nav({ to: perfil==='gestor'?'/gestor/dashboard':'/colaborador', replace: true });
       } else {
         const { data, error } = await supabase.auth.signUp({
           email, password: senha,
-          options: { emailRedirectTo: window.location.origin + "/auth", data: { nome, convite: codigo } },
+          options: { emailRedirectTo: window.location.origin + "/auth", data: { nome, convite: codigo,perfil } },
         });
         if (error) throw error;
-        if (data.session) nav({ to: "/inicio", replace: true });
+        if (data.session) nav({ to: perfil==='gestor'?'/gestor/dashboard':'/colaborador', replace: true });
         else toast.success("Conta criada. Confirme pelo link enviado ao seu e-mail.");
       }
     } catch (err) {
@@ -71,7 +79,8 @@ function AuthPage() {
           <span className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground"><Clock3 className="size-5" /></span>
           Ponto Inteligente
         </div>
-        <h1 className="text-xl font-bold">{modo === "entrar" ? "Entrar" : "Criar conta"}</h1>
+        <div className="mb-5 grid grid-cols-2 gap-2" aria-label="Área de acesso"><Button variant={perfil==='colaborador'?'default':'outline'} className="min-h-11" onClick={()=>setPerfil('colaborador')} aria-pressed={perfil==='colaborador'}>Colaborador</Button><Button variant={perfil==='gestor'?'default':'outline'} className="min-h-11" onClick={()=>setPerfil('gestor')} aria-pressed={perfil==='gestor'}>Gestor/RH</Button></div>
+        <h1 className="text-xl font-bold">{modo === "entrar" ? "Entrar" : "Criar conta"} · {perfil==='gestor'?'Gestor/RH':'Colaborador'}</h1>
         <form onSubmit={submit} className="mt-5 grid gap-4">
           {modo === "cadastrar" && (
             <><div className="grid gap-1.5"><Label htmlFor="nome">Nome completo</Label>

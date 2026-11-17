@@ -53,6 +53,7 @@ export type Database = {
           equipe_id: string | null
           expira_em: string
           id: string
+          perfil: Database["public"]["Enums"]["app_role"]
           token_hash: string
           usado_em: string | null
         }
@@ -64,6 +65,7 @@ export type Database = {
           equipe_id?: string | null
           expira_em?: string
           id?: string
+          perfil?: Database["public"]["Enums"]["app_role"]
           token_hash: string
           usado_em?: string | null
         }
@@ -75,6 +77,7 @@ export type Database = {
           equipe_id?: string | null
           expira_em?: string
           id?: string
+          perfil?: Database["public"]["Enums"]["app_role"]
           token_hash?: string
           usado_em?: string | null
         }
@@ -412,6 +415,14 @@ export type Database = {
       cancelar_convite: { Args: { _id: string }; Returns: undefined }
       criar_convite: {
         Args: { _email: string; _equipe_id?: string }
+        Returns: string
+      }
+      criar_convite_perfil: {
+        Args: {
+          _email: string
+          _equipe_id?: string
+          _perfil: Database["public"]["Enums"]["app_role"]
+        }
         Returns: string
       }
       decidir_solicitacao: {

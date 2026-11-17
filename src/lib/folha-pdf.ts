@@ -1,0 +1,9 @@
+import {TIPOS,formatarData,formatarMinutos,type folhaMensal} from './ponto';
+export async function baixarFolhaPDF(nome:string,email:string|null,cargo:string|null,mes:string,folha:ReturnType<typeof folhaMensal>){
+ const [{jsPDF},{default:autoTable}]=await Promise.all([import('jspdf'),import('jspdf-autotable')]);
+ const doc=new jsPDF();doc.setFontSize(17);doc.text('Ponto Inteligente',14,18);doc.setFontSize(13);doc.text(`Folha de ponto mensal — ${mes.split('-').reverse().join('/')}`,14,27);doc.setFontSize(10);
+ let y=36;for(const texto of [`Colaborador: ${nome}`,`E-mail: ${email??'—'}`,`Cargo: ${cargo??'—'}`]){const lines=doc.splitTextToSize(texto,180);doc.text(lines,14,y);y+=lines.length*5;}
+ doc.text(`Trabalhado: ${formatarMinutos(folha.trabalhado,false)} | Saldo do mês: ${formatarMinutos(folha.saldo)}`,14,y+2);
+ autoTable(doc,{startY:y+8,head:[['Data','Entrada','Intervalo','Retorno','Saída','Horas','Saldo','Ocorrências']],body:folha.dias.map(d=>[formatarData(d.data),...TIPOS.map(t=>d.marc.find(m=>m.tipo===t)?.hora_local?.slice(0,5)??'—'),formatarMinutos(d.trabalhado,false),formatarMinutos(d.saldo),[d.status,d.pendente?'Ajuste pendente':'',d.marc.some(m=>m.geo_status==='fora')?'Fora da área':'',d.marc.some(m=>(m as {origem?:string}).origem==='ajuste')?'Ajuste aprovado':''].filter(Boolean).join('; ')]),styles:{fontSize:8,cellPadding:2},headStyles:{fillColor:[45,66,58]},margin:{bottom:23},didDrawPage:()=>{doc.setFontSize(8);doc.text('Horários locais do dispositivo. Ajustes pendentes não alteram horas ou saldo.',14,282);doc.text('Controle interno de jornada; não certifica conformidade como REP-P.',14,287);}});
+ doc.save(`folha-ponto-${mes}.pdf`);
+}

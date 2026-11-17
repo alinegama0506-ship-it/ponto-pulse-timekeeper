@@ -22,6 +22,8 @@
 - [ ] Pontualidade, feriados/faltas confirmadas e vencimentos FIFO: dependem das escalas e dos lotes previstos na Fase 5; exibidos sem valores inventados.
 
 # Fase 4 — Gestão por período
+- [ ] Separar entrada/cadastro por perfil; colaborador apenas com dados próprios, gestor com acesso de gestão autorizado.
+- [ ] Folha mensal do colaborador selecionado, com download PDF.
 - [ ] Filtros compartilhados de período/equipe/local e navegação dos indicadores para a operação.
 - [ ] Dashboard Agora/Período, comparação, tendências, extras e entradas por dia/horário.
 - [ ] Aprovação/rejeição em lote, mediana de decisão e pendências acima de 48 horas.

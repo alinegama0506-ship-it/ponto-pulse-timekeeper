@@ -19,14 +19,14 @@ import { useRegras } from "@/lib/queries";
 import { useMe } from "@/lib/queries";
 import { Checkbox } from '@/components/ui/checkbox';
 import { FiltrosGestao } from '@/components/ponto/FiltrosGestao';
-import { filtrosGestao, useFiltrosGestao } from '@/lib/gestao-filtros';
+import { validarFiltrosGestao, useFiltrosGestao } from '@/lib/gestao-filtros';
 import { exportarGestao } from '@/lib/gestao-export';
 import { useNow } from '@/lib/queries';
 import { agruparPorDia, jornadaCompleta, minutosTrabalhados, saldoDia, slaSolicitacoes } from '@/lib/ponto';
 import { MOTIVO_LABEL, STATUS_LABEL, TIPOS, TIPO_LABEL, formatarData, formatarHora } from "@/lib/ponto";
 
 export const Route = createFileRoute("/_authenticated/gestor/operacao")({
-  validateSearch: filtrosGestao,
+  validateSearch: validarFiltrosGestao,
   head: () => ({ meta: [{ title: "Operação — Ponto Inteligente" }, { property: "og:title", content: "Operação — Ponto Inteligente" }, { property: "og:description", content: "Aprovação de ajustes e consulta de marcações." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "description", content: "Aprovação de ajustes e consulta de marcações." }] }),
   component: Operacao,
 });
