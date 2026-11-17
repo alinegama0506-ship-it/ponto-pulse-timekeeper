@@ -39,7 +39,8 @@ use the editor.
 - Authenticated routes share AppShell; manager routes only gate roles and render Outlet to avoid duplicate navigation and main landmarks.
 - Profile preferences are validated in the database and applied by PreferenciasProvider before authenticated content is revealed; translations and locale formatting use useT.
 - Personal exports scope every query to the authenticated user and paginate all records; CSV cells escape spreadsheet formulas.
-- Rules SELECT is restricted to the configured company row and application roles; work-location SELECT gives managers all locations and collaborators eligible active locations plus locations referenced by their own punches, preserving historical labels without exposing unrelated locations.
+- Rules SELECT is restricted to the configured company row and application roles; work-location SELECT gives managers all locations and collaborators all active locations plus locations referenced by their own punches, preserving historical labels.
+- Address-only location forms resolve candidates through a manager-authorized server function and require confirmation before saving coordinates; SQL accepts any active registered location and checks containment before accuracy warnings so matching locations are not rejected.
 - Weekly reporting reuses pure helpers in ponto.ts and owner-scoped paginated queries; use the provisional five-day target without inventing schedules, holidays, punctuality or FIFO expiry before the schedule engine exists.
 - Manager filters use optional validated URL search parameters and paginated interval reads so navigation preserves scope without truncation.
 - Batch decisions wrap decidir_solicitacao atomically; no independent approval path may bypass its ownership, role and audit checks.

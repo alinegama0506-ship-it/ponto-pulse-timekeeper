@@ -11,8 +11,9 @@ export function distanciaHaversine(lat1: number, lng1: number, lat2: number, lng
 export function statusGeo({ modalidade, precisao, precisaoMax, distancia, raio, falha = "indisponivel" }: { modalidade: string; precisao: number | null; precisaoMax: number; distancia: number | null; raio: number | null; falha?: "sem_permissao" | "indisponivel" }): GeoStatus {
   if (modalidade === "externo" || modalidade === "remoto") return "dispensado";
   if (precisao === null) return falha;
+  if (distancia !== null && raio !== null && distancia <= raio) return "dentro";
   if (precisao > precisaoMax) return "precisao_baixa";
-  return distancia !== null && raio !== null && distancia <= raio ? "dentro" : "fora";
+  return "fora";
 }
 export function podeConfirmarGeo(status: GeoStatus, modo: GeoModo, justificativa: string) {
   if (status === "dentro" || status === "dispensado") return true;

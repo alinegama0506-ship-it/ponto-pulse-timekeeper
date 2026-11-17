@@ -1,3 +1,8 @@
+# Ajuste — Locais por nome e endereço
+- [x] Cadastro por nome/endereço com confirmação do endereço localizado.
+- [x] Aceitar localização dentro de qualquer local ativo cadastrado, sem restrição de vínculo.
+- [x] 42 testes passando; busca real, gravação e recarga de local temporário conferidas com Gestor/RH; avaliação real retornou dentro mesmo com precisão de 10.000 m. Local de teste removido, sem registrar pontos; desktop e 380px sem erros ou transbordamento.
+
 # Fase 1 — Registro por geolocalização
 - [x] Banco: locais, vínculos, modalidades, parâmetros, aviso e registro protegido com cálculo de distância/status/divergência.
 - [x] Colaborador: coleta pontual, aviso, confirmação, justificativa, recuperação de permissão e selos.
